@@ -10,8 +10,8 @@ function run(source: string) {
     
     const parser = new Parser(tokens);
     try {
-        const expr = parser.parse();
-        interpreter.interpret(expr)
+        const statements = parser.parse();
+        interpreter.interpret(statements);
     }
     catch (error) {
         if (error instanceof ParseError) {

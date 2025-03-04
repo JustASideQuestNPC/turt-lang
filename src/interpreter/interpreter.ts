@@ -1,21 +1,20 @@
 import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
+import * as Stmt from "./statements.js";
 
 /**
  * Executes TurtLang code.
  */
-export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion> {
-    interpret(expression: Expr.ExprBase) {
+export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
+                                            Stmt.StmtVisitor<void> {
+    interpret(statements: Stmt.StmtBase[]) {
         try {
-            console.log(this.evaluate(expression));
+            for (const statement of statements) {
+                this.execute(statement);
+            }
         }
         catch (error) {
-            if (error instanceof TypeError) {
-                console.error(error.message);
-            }
-            else {
-                throw error;
-            }
+            console.error(error.message);
         }
     }
 
@@ -119,6 +118,31 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion> {
 
     private evaluate(expr: Expr.ExprBase): LiteralTypeUnion {
         return expr.accept(this);
+    }
+
+    visitBlockStmt(stmt: Stmt.BlockStmt) {}
+
+    visitExpressionStmt(stmt: Stmt.ExpressionStmt) {
+        this.evaluate(stmt.expression);
+    }
+
+    visitFunctionStmt(stmt: Stmt.FunctionStmt) {}
+
+    visitIfStmt(stmt: Stmt.IfStmt) {}
+
+    visitPrintStmt(stmt: Stmt.PrintStmt) {
+        const value = this.evaluate(stmt.expression);
+        console.log(value);
+    }
+
+    visitReturnStmt(stmt: Stmt.ReturnStmt) {}
+
+    visitVarStmt(stmt: Stmt.VarStmt) {}
+
+    visitWhileStmt(stmt: Stmt.WhileStmt) {}
+
+    private execute(stmt: Stmt.StmtBase) {
+        stmt.accept(this);
     }
 }
 

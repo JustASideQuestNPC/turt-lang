@@ -18,7 +18,7 @@ export interface StmtVisitor<T> {
     visitWhileStmt(stmt: WhileStmt): T;
 }
 
-class BlockStmt extends StmtBase {
+export class BlockStmt extends StmtBase {
     statements: StmtBase[];
     
     constructor(statements: StmtBase[]) {
@@ -31,7 +31,7 @@ class BlockStmt extends StmtBase {
     }
 }
 
-class ExpressionStmt extends StmtBase {
+export class ExpressionStmt extends StmtBase {
     expression: ExprBase;
 
     constructor(expression: ExprBase) {
@@ -44,7 +44,7 @@ class ExpressionStmt extends StmtBase {
     }
 }
 
-class FunctionStmt extends StmtBase {
+export class FunctionStmt extends StmtBase {
     name: Token;
     params: Token[];
     body: StmtBase[];
@@ -61,7 +61,7 @@ class FunctionStmt extends StmtBase {
     }
 }
 
-class IfStmt extends StmtBase {
+export class IfStmt extends StmtBase {
     condition: ExprBase;
     thenBranch: StmtBase;
     elseBranch: StmtBase;
@@ -78,7 +78,7 @@ class IfStmt extends StmtBase {
     }
 }
 
-class PrintStmt extends StmtBase {
+export class PrintStmt extends StmtBase {
     expression: ExprBase;
 
     constructor(expression: ExprBase) {
@@ -91,7 +91,7 @@ class PrintStmt extends StmtBase {
     }
 }
 
-class ReturnStmt extends StmtBase {
+export class ReturnStmt extends StmtBase {
     keyword: Token;
     value: ExprBase;
 
@@ -106,7 +106,7 @@ class ReturnStmt extends StmtBase {
     }
 }
 
-class VarStmt extends StmtBase {
+export class VarStmt extends StmtBase {
     name: Token;
     initializer: ExprBase;
 
@@ -121,7 +121,7 @@ class VarStmt extends StmtBase {
     }
 }
 
-class WhileStmt extends StmtBase {
+export class WhileStmt extends StmtBase {
     condition: ExprBase;
     body: StmtBase;
 

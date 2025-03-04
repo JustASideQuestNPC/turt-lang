@@ -1,5 +1,6 @@
 import { BinaryExpr, ExprBase, GroupingExpr, LiteralExpr, UnaryExpr } from "./expressions.js";
 import { Token, TokenType } from "./scanner.js";
+import * as Stmt from "./statements.js";
 
 /**
  * Represents a syntax error found when parsing turtle code.
@@ -38,16 +39,17 @@ export default class Parser {
         this.tokens = tokens;
     }
 
-    parse() {
-        try {
-            return this.expression();
+    /**
+     * Parses all tokens into a list of statements.
+     */
+    parse(): Stmt.StmtBase[] {
+        const statements: Stmt.StmtBase[] = [];
+        
+        while (!this.atEof()) {
+            statements.push(this.statement());
         }
-        catch (error) {
-            if (error instanceof ParseError) {
-                return null;
-            }
-            throw error;
-        }
+
+        return statements;
     }
 
     private atEof(): boolean {
@@ -217,5 +219,27 @@ export default class Parser {
 
             this.advance();
         }
+    }
+
+    /**
+     * Parses a single statement.
+     */
+    private statement(): Stmt.StmtBase {
+        if (this.match(TokenType.PRINT)) { return this.printStatement(); }
+
+        // if nothing matches, assume it's an expression statement
+        return this.expressionStatement();
+    }
+
+    private expressionStatement(): Stmt.ExpressionStmt {
+        const expr = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expected ';' after expression.");
+        return new Stmt.ExpressionStmt(expr);
+    }
+
+    private printStatement(): Stmt.PrintStmt {
+        const value = this.expression();
+        this.consume(TokenType.SEMICOLON, "Expected ';' after value.");
+        return new Stmt.PrintStmt(value);
     }
 }
