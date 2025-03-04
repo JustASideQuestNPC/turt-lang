@@ -1,6 +1,8 @@
+import { TurtError } from "./common.js";
 import Interpreter from "./interpreter.js";
-import Parser, { ParseError } from "./parser.js";
+import Parser from "./parser.js";
 import Scanner from "./scanner.js";
+
 
 const interpreter = new Interpreter;
 
@@ -14,9 +16,11 @@ function run(source: string) {
         interpreter.interpret(statements);
     }
     catch (error) {
-        if (error instanceof ParseError) {
+        // this will catch any turt-related error (ParseError, RuntimeError, etc.)
+        if (error instanceof TurtError) {
             console.error(error.message);
         }
+        // throw anything we don't expect
         else {
             throw error;
         }

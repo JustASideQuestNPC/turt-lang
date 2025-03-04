@@ -1,6 +1,7 @@
 import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
+import { TTypeError } from "./common.js";
 
 /**
  * Executes TurtLang code.
@@ -39,7 +40,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
                     return left + right;
                 }
                 
-                throw new TypeError(
+                throw new TTypeError(
                     `[TurtLang] TypeError (line ${expr.operator.line}): Operands must be two ` +
                     `numbers or two strings.`
                 );
@@ -148,7 +149,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
 function checkNumberOperand(operator: Token, operand: LiteralTypeUnion) {
     if (typeof operand !== "number") {
-        throw new TypeError(
+        throw new TTypeError(
             `[TurtLang] TypeError (line ${operator.line}): Operand must be a number.`
         );
     }
@@ -156,7 +157,7 @@ function checkNumberOperand(operator: Token, operand: LiteralTypeUnion) {
 
 function checkNumberOperands(operator: Token, left: LiteralTypeUnion, right: LiteralTypeUnion) {
     if (typeof left !== "number" || typeof right !== "number") {
-        throw new TypeError(
+        throw new TTypeError(
             `[TurtLang] TypeError (line ${operator.line}): Operands must be numbers.`
         );
     }

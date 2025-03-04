@@ -1,31 +1,22 @@
-import { BinaryExpr, ExprBase, GroupingExpr, LiteralExpr, UnaryExpr } from "./expressions.js";
 import { Token, TokenType } from "./scanner.js";
+import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
+import { TParseError } from "./common.js";
 
 /**
- * Represents a syntax error found when parsing turtle code.
- */
-export class ParseError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = "ParseError";
-    }
-}
-
-/**
- * Reports a parsing error message to the user, then returns (but does not throw) a `ParseError`
+ * Reports a parsing error message to the user, then returns (but does not throw) a `TParseError`
  * representing it.
  */
 
-function reportError(token: Token, message: string): ParseError {
+function reportError(token: Token, message: string): TParseError {
     if (token.type === TokenType.EOF) {
-        message = `[TurtLang] ParseError (line ${token.line} at end): ${message}`;
+        message = `[TurtLang] TParseError (line ${token.line} at end): ${message}`;
     }
     else {
-        message = `[TurtLang] ParseError (line ${token.line} at '${token.lexeme}'): ${message}')`;
+        message = `[TurtLang] TParseError (line ${token.line} at '${token.lexeme}'): ${message}')`;
     }
     console.error(message);
-    return new ParseError(message);
+    return new TParseError(message);
 }
 
 /**
@@ -46,7 +37,7 @@ export default class Parser {
         const statements: Stmt.StmtBase[] = [];
         
         while (!this.atEof()) {
-            statements.push(this.statement());
+            statements.push(this.declaration());
         }
 
         return statements;
@@ -88,7 +79,7 @@ export default class Parser {
 
     /**
      * Checks whether the current token is of the given type. If it is, the token is consumed and
-     * the next token is returned. Otherwise, a `ParseError` is thrown.
+     * the next token is returned. Otherwise, a `TParseError` is thrown.
      */
     private consume(type: TokenType, message: string): Token {
         if (this.check(type)) { return this.advance(); }
@@ -109,11 +100,11 @@ export default class Parser {
         return false;
     }
     
-    private expression(): ExprBase {
+    private expression(): Expr.ExprBase {
         return this.equality();
     }
 
-    private equality(): ExprBase {
+    private equality(): Expr.ExprBase {
         let expr = this.comparison();
 
         // all equality expressions are either "x == y" or "x != y", so we keep consuming until we
@@ -121,76 +112,80 @@ export default class Parser {
         while(this.match(TokenType.DOUBLE_EQUAL, TokenType.NOT_EQUAL)) {
             const operator = this.previous();
             const right = this.comparison();
-            expr = new BinaryExpr(expr, operator, right);
+            expr = new Expr.BinaryExpr(expr, operator, right);
         }
 
         return expr;
     }
 
-    private comparison(): ExprBase {
+    private comparison(): Expr.ExprBase {
         let expr = this.term();
 
         while(this.match(TokenType.LESS, TokenType.GREATER, TokenType.LESS_EQUAL,
                          TokenType.GREATER_EQUAL)) {
             const operator = this.previous();
             const right = this.term();
-            expr = new BinaryExpr(expr, operator, right);
+            expr = new Expr.BinaryExpr(expr, operator, right);
         }
 
         return expr;
     }
 
     // addition and subraction
-    private term(): ExprBase {
+    private term(): Expr.ExprBase {
         let expr = this.factor();
 
         while(this.match(TokenType.PLUS, TokenType.MINUS)) {
             const operator = this.previous();
             const right = this.factor();
-            expr = new BinaryExpr(expr, operator, right);
+            expr = new Expr.BinaryExpr(expr, operator, right);
         }
 
         return expr;
     }
 
     // multiplication and division
-    private factor(): ExprBase {
+    private factor(): Expr.ExprBase {
         let expr = this.unary();
 
         while(this.match(TokenType.SLASH, TokenType.STAR)) {
             const operator = this.previous();
             const right = this.unary();
-            expr = new BinaryExpr(expr, operator, right);
+            expr = new Expr.BinaryExpr(expr, operator, right);
         }
 
         return expr;
     }
 
     // not (!) and negation (-), which both only affect a single value
-    private unary(): ExprBase {
+    private unary(): Expr.ExprBase {
         if (this.match(TokenType.MINUS, TokenType.NOT)) {
             const operator = this.previous();
             const right = this.unary();
-            return new UnaryExpr(operator, right);
+            return new Expr.UnaryExpr(operator, right);
         }
 
         return this.primary();
     }
 
     // literals and parentheses
-    private primary(): ExprBase {
-        if (this.match(TokenType.TRUE))  { return new LiteralExpr(true); }
-        if (this.match(TokenType.FALSE)) { return new LiteralExpr(false); }
-        if (this.match(TokenType.NULL))  { return new LiteralExpr(null); }
+    private primary(): Expr.ExprBase {
+        if (this.match(TokenType.TRUE))  { return new Expr.LiteralExpr(true); }
+        if (this.match(TokenType.FALSE)) { return new Expr.LiteralExpr(false); }
+        if (this.match(TokenType.NULL))  { return new Expr.LiteralExpr(null); }
 
         if (this.match(TokenType.NUMBER, TokenType.STRING)) {
-            return new LiteralExpr(this.previous().literal);
+            return new Expr.LiteralExpr(this.previous().literal);
+        }
+
+        if (this.match(TokenType.IDENTIFIER)) {
+            return new Expr.VariableExpr(this.previous());
         }
 
         if (this.match(TokenType.LEFT_PAREN)) {
             let expr = this.expression();
             this.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.");
-            return new GroupingExpr(expr);
+            return new Expr.GroupingExpr(expr);
         }
 
         throw reportError(this.peek(), "Expected an expression.")
@@ -221,9 +216,22 @@ export default class Parser {
         }
     }
 
-    /**
-     * Parses a single statement.
-     */
+    private declaration(): Stmt.StmtBase {
+        // try...catch for synchronizing after a parse error
+        try {
+            if (this.match(TokenType.VAR)) { return this.varDeclaration(); }
+            return this.statement();
+        }
+        catch (error) {
+            if (error instanceof TParseError) {
+                this.synchronize();
+                return null;
+            }
+            // unexpected errors should still be thrown
+            throw error;
+        }
+    }
+
     private statement(): Stmt.StmtBase {
         if (this.match(TokenType.PRINT)) { return this.printStatement(); }
 
@@ -241,5 +249,18 @@ export default class Parser {
         const value = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ';' after value.");
         return new Stmt.PrintStmt(value);
+    }
+
+    private varDeclaration(): Stmt.VarStmt {
+        const name = this.consume(TokenType.IDENTIFIER, "Expected variable name.");
+
+        // initializers are optional
+        let initializer: Expr.ExprBase = null;
+        if (this.match(TokenType.EQUAL)) {
+            initializer = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expected ';' after declaration.");
+        return new Stmt.VarStmt(name, initializer);
     }
 }
