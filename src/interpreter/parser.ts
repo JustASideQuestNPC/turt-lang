@@ -101,7 +101,7 @@ export default class Parser {
     }
     
     private expression(): Expr.ExprBase {
-        return this.equality();
+        return this.assignment();
     }
 
     private equality(): Expr.ExprBase {
@@ -262,5 +262,24 @@ export default class Parser {
 
         this.consume(TokenType.SEMICOLON, "Expected ';' after declaration.");
         return new Stmt.VarStmt(name, initializer);
+    }
+
+    private assignment(): Expr.ExprBase {
+        const expr = this.equality();
+
+        // mildly cursed stuff to get around only having a 1-token lookahead
+        if (this.match(TokenType.EQUAL)) {
+            const equals = this.previous();
+            const value = this.assignment();
+
+            if (expr instanceof Expr.VariableExpr) {
+                const name = expr.name;
+                return new Expr.AssignmentExpr(name, value);
+            }
+
+            reportError(equals, "Invalid assignment target");
+        }
+
+        return expr;
     }
 }

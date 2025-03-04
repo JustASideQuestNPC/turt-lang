@@ -2,12 +2,15 @@ import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
 import { TTypeError } from "./common.js";
+import Environment from "./environment.js";
 
 /**
  * Executes TurtLang code.
  */
 export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
                                             Stmt.StmtVisitor<void> {
+    private environment: Environment = new Environment();
+
     interpret(statements: Stmt.StmtBase[]) {
         try {
             for (const statement of statements) {
@@ -20,7 +23,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitAssignmentExpr(expr: Expr.AssignmentExpr): LiteralTypeUnion {
-        return null;
+        const value = this.evaluate(expr.value);
+        this.environment.assign(expr.name, value);
+        return value;
     }
 
     visitBinaryExpr(expr: Expr.BinaryExpr): LiteralTypeUnion {
@@ -114,7 +119,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
     
     visitVariableExpr(expr: Expr.VariableExpr): LiteralTypeUnion {
-        return null;
+        return this.environment.get(expr.name);
     }
 
     private evaluate(expr: Expr.ExprBase): LiteralTypeUnion {
@@ -138,7 +143,15 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
     visitReturnStmt(stmt: Stmt.ReturnStmt) {}
 
-    visitVarStmt(stmt: Stmt.VarStmt) {}
+    visitVarStmt(stmt: Stmt.VarStmt) {
+        let value: LiteralTypeUnion = null;
+        // evaluate the initializer if it exists, otherwise set the variable to null
+        if (stmt.initializer !== null) {
+            value = this.evaluate(stmt.initializer);
+        }
+
+        this.environment.define(stmt.name.lexeme, value);
+    }
 
     visitWhileStmt(stmt: Stmt.WhileStmt) {}
 
