@@ -10,10 +10,10 @@ import { TParseError } from "./common.js";
 
 function reportError(token: Token, message: string): TParseError {
     if (token.type === TokenType.EOF) {
-        message = `[TurtLang] TParseError (line ${token.line} at end): ${message}`;
+        message = `[TurtLang] ParseError (line ${token.line} at end): ${message}`;
     }
     else {
-        message = `[TurtLang] TParseError (line ${token.line} at '${token.lexeme}'): ${message}')`;
+        message = `[TurtLang] ParseError (line ${token.line} at '${token.lexeme}'): ${message}')`;
     }
     console.error(message);
     return new TParseError(message);
@@ -191,6 +191,39 @@ export default class Parser {
         throw reportError(this.peek(), "Expected an expression.")
     }
 
+    private assignment(): Expr.ExprBase {
+        // check for boolean operators - if there aren't any, this will fall through and we'll get
+        // an expression
+        const expr = this.logical();
+
+        // mildly cursed stuff to get around only having a 1-token lookahead
+        if (this.match(TokenType.EQUAL)) {
+            const equals = this.previous();
+            const value = this.assignment();
+
+            if (expr instanceof Expr.VariableExpr) {
+                const name = expr.name;
+                return new Expr.AssignmentExpr(name, value);
+            }
+
+            reportError(equals, "Invalid assignment target");
+        }
+
+        return expr;
+    }
+
+    private logical(): Expr.ExprBase {
+        let expr = this.equality();
+
+        while (this.match(TokenType.AND, TokenType.OR)) {
+            const operator = this.previous();
+            const right = this.equality();
+            expr = new Expr.LogicalExpr(expr, operator, right);
+        }
+
+        return expr;
+    }
+
     /**
      * Attempts to synchronize the parser after a syntax error is found.
      */
@@ -233,7 +266,11 @@ export default class Parser {
     }
 
     private statement(): Stmt.StmtBase {
-        if (this.match(TokenType.PRINT)) { return this.printStatement(); }
+        if (this.match(TokenType.FOR))        { return this.forStatement(); }
+        if (this.match(TokenType.IF))         { return this.ifStatement(); }
+        if (this.match(TokenType.PRINT))      { return this.printStatement(); }
+        if (this.match(TokenType.WHILE))      { return this.whileStatement(); }
+        if (this.match(TokenType.LEFT_BRACE)) { return new Stmt.BlockStmt(this.blockStatement()); }
 
         // if nothing matches, assume it's an expression statement
         return this.expressionStatement();
@@ -264,22 +301,85 @@ export default class Parser {
         return new Stmt.VarStmt(name, initializer);
     }
 
-    private assignment(): Expr.ExprBase {
-        const expr = this.equality();
-
-        // mildly cursed stuff to get around only having a 1-token lookahead
-        if (this.match(TokenType.EQUAL)) {
-            const equals = this.previous();
-            const value = this.assignment();
-
-            if (expr instanceof Expr.VariableExpr) {
-                const name = expr.name;
-                return new Expr.AssignmentExpr(name, value);
-            }
-
-            reportError(equals, "Invalid assignment target");
+    private blockStatement(): Stmt.StmtBase[] {
+        const statements: Stmt.StmtBase[] = [];
+        
+        while (!this.check(TokenType.RIGHT_BRACE) && !this.atEof()) {
+            statements.push(this.declaration());
         }
 
-        return expr;
+        this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+        return statements;
+    }
+
+    private ifStatement(): Stmt.StmtBase {
+        this.consume(TokenType.LEFT_PAREN, "Expected '{' after 'if'.");
+        const condition = this.expression(); // the conditional
+        this.consume(TokenType.RIGHT_PAREN, "Expected '}' after if condition.");
+
+        // branch in braces
+        const thenBranch = this.statement();
+        // the else branch is optional
+        let elseBranch: Stmt.StmtBase = null;
+        if (this.match(TokenType.ELSE)) {
+            elseBranch = this.statement();
+        }
+
+        return new Stmt.IfStmt(condition, thenBranch, elseBranch);
+    }
+
+    private whileStatement(): Stmt.StmtBase {
+        this.consume(TokenType.LEFT_PAREN, "Expected '{' after 'while'.");
+        const condition = this.expression(); // the conditional
+        this.consume(TokenType.RIGHT_PAREN, "Expected '}' after while condition.");
+        const body = this.statement();
+
+        return new Stmt.WhileStmt(condition, body);
+    }
+
+    private forStatement(): Stmt.StmtBase {
+        this.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
+
+        // rather than add a new method to the interpreter, we can just unpack the for loop into a
+        // while loop and use the while method again
+        let initializer: Stmt.StmtBase;
+        // the initializer is optional
+        if (this.match(TokenType.SEMICOLON)) {
+            initializer = null;
+        }
+        else if (this.match(TokenType.VAR)) {
+            initializer = this.varDeclaration();
+        }
+        else {
+            initializer = this.expressionStatement();
+        }
+
+        let condition: Expr.ExprBase = null;
+        // the condition is also optional
+        if (!this.check(TokenType.SEMICOLON)) {
+            condition = this.expression();
+        }
+        this.consume(TokenType.SEMICOLON, "Expected ';' after loop condition.");
+        
+        let increment: Expr.ExprBase = null;
+        // the increment is ALSO optional
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            increment = this.expression();
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expected ')' after for loop clauses.");
+
+        let body = this.statement();
+        if (increment !== null) {
+            body = new Stmt.BlockStmt([body, new Stmt.ExpressionStmt(increment)]);
+        }
+
+        // add some fallbacks and create the final while statement
+        if (condition === null) { condition = new Expr.LiteralExpr(true); }
+        body = new Stmt.WhileStmt(condition, body);
+        if (initializer !== null) {
+            body = new Stmt.BlockStmt([initializer, body]);
+        }
+
+        return body;
     }
 }

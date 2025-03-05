@@ -97,7 +97,19 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
     
     visitLogicalExpr(expr: Expr.LogicalExpr): LiteralTypeUnion {
-        return null;
+        const left = this.evaluate(expr.left);
+
+        if (expr.operator.type === TokenType.OR) {
+            // short-circuit if the left side is true since the or will always be true then
+            if (isTruthy(left)) { return left; }
+        }
+        else {
+            // short-circuit if the left side is false since the or will always be false then
+            if (!isTruthy(left)) { return left; }
+        }
+
+        // only evaluate the right side if we have to
+        return this.evaluate(expr.right);
     }
     
     visitUnaryExpr(expr: Expr.UnaryExpr): LiteralTypeUnion {
@@ -126,7 +138,23 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         return expr.accept(this);
     }
 
-    visitBlockStmt(stmt: Stmt.BlockStmt) {}
+    visitBlockStmt(stmt: Stmt.BlockStmt) {
+        this.executeBlock(stmt.statements, new Environment(this.environment));
+    }
+
+    private executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
+        const previous = this.environment;
+        try {
+            this.environment = environment;
+            
+            for (const statement of statements) {
+                this.execute(statement);
+            }
+        }
+        finally {
+            this.environment = previous;
+        }
+    }
 
     visitExpressionStmt(stmt: Stmt.ExpressionStmt) {
         this.evaluate(stmt.expression);
@@ -134,7 +162,14 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
     visitFunctionStmt(stmt: Stmt.FunctionStmt) {}
 
-    visitIfStmt(stmt: Stmt.IfStmt) {}
+    visitIfStmt(stmt: Stmt.IfStmt) {
+        if (isTruthy(this.evaluate(stmt.condition))) {
+            this.execute(stmt.thenBranch);
+        }
+        else if (stmt.elseBranch !== null) {
+            this.execute(stmt.elseBranch);
+        }
+    }
 
     visitPrintStmt(stmt: Stmt.PrintStmt) {
         const value = this.evaluate(stmt.expression);
@@ -153,7 +188,11 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.environment.define(stmt.name.lexeme, value);
     }
 
-    visitWhileStmt(stmt: Stmt.WhileStmt) {}
+    visitWhileStmt(stmt: Stmt.WhileStmt) {
+        while(isTruthy(this.evaluate(stmt.condition))) {
+            this.execute(stmt.body);
+        }
+    }
 
     private execute(stmt: Stmt.StmtBase) {
         stmt.accept(this);

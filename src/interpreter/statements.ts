@@ -64,9 +64,9 @@ export class FunctionStmt extends StmtBase {
 export class IfStmt extends StmtBase {
     condition: ExprBase;
     thenBranch: StmtBase;
-    elseBranch: StmtBase;
+    elseBranch: StmtBase|null;
 
-    constructor(condition: ExprBase, thenBranch: StmtBase, elseBranch: StmtBase) {
+    constructor(condition: ExprBase, thenBranch: StmtBase, elseBranch: StmtBase|null) {
         super();
         this.condition = condition;
         this.thenBranch = thenBranch;
