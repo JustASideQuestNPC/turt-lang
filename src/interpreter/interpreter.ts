@@ -85,6 +85,13 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
     
     visitCallExpr(expr: Expr.CallExpr): LiteralTypeUnion {
+        const calleeName = this.evaluate(expr.callee);
+        // attempt to get the 
+
+        // evaluate arguments in the order they were passed to the function - the order *probably*
+        // won't ever be important, but it's useful just in case someone does something really weird
+        // const callArgs = 
+
         return null;
     }
     
@@ -160,7 +167,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.evaluate(stmt.expression);
     }
 
-    visitFunctionStmt(stmt: Stmt.FunctionStmt) {}
+    visitFunctionStmt(stmt: Stmt.FunctionStmt) {
+
+    }
 
     visitIfStmt(stmt: Stmt.IfStmt) {
         if (isTruthy(this.evaluate(stmt.condition))) {
@@ -176,7 +185,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         console.log(value);
     }
 
-    visitReturnStmt(stmt: Stmt.ReturnStmt) {}
+    visitReturnStmt(stmt: Stmt.ReturnStmt) {
+
+    }
 
     visitVarStmt(stmt: Stmt.VarStmt) {
         let value: LiteralTypeUnion = null;

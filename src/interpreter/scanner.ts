@@ -1,4 +1,4 @@
-export type LiteralTypeUnion = number|string|boolean|null;
+export type LiteralTypeUnion = number|string|boolean|Function|null;
 
 export enum TokenType {
     // single-character tokens

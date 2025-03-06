@@ -165,7 +165,7 @@ export default class Parser {
             return new Expr.UnaryExpr(operator, right);
         }
 
-        return this.primary();
+        return this.call();
     }
 
     // literals and parentheses
@@ -189,6 +189,30 @@ export default class Parser {
         }
 
         throw reportError(this.peek(), "Expected an expression.")
+    }
+
+    // function calls
+    private call(): Expr.ExprBase {
+        let expr = this.primary();
+
+        // loop this to handle chained function calls (i.e., "foo(1)(2)(3);")
+        while (this.match(TokenType.LEFT_PAREN)) { expr = this.finishCall(expr); }
+
+        return expr;
+    }
+
+    private finishCall(callee: Expr.ExprBase): Expr.CallExpr  {
+        // loop through and get all the arguments (if any)
+        const callArgs: Expr.ExprBase[] = [];
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            do {
+                callArgs.push(this.expression());
+            } while (this.match(TokenType.COMMA));
+        }
+
+        const paren = this.consume(TokenType.RIGHT_PAREN, "Expected ')' after argument list.");
+
+        return new Expr.CallExpr(callee, paren, callArgs);
     }
 
     private assignment(): Expr.ExprBase {
