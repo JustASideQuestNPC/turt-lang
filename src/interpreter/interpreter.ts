@@ -25,6 +25,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
                                             Stmt.StmtVisitor<void> {
     globals: Environment; // this is public for importing libraries
     private environment: Environment;
+    private statements: Stmt.StmtBase[];
+    private index: number;
+    private hadError: boolean;
 
     constructor() {
         this.globals = new Environment();
@@ -34,14 +37,26 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.environment = this.globals;
     }
 
-    interpret(statements: Stmt.StmtBase[]) {
+    init(statements: Stmt.StmtBase[]) {
+        this.statements = statements;
+        this.index = 0;
+        this.hadError = false;
+    }
+
+    run() {
+        while (this.index < this.statements.length) {
+            this.step();
+            if (this.hadError) { break; }
+        }
+    }
+
+    step() {
         try {
-            for (const statement of statements) {
-                this.execute(statement);
-            }
+            this.execute(this.statements[this.index++]);
         }
         catch (error) {
             console.error(error.message);
+            this.hadError = true;
         }
     }
 

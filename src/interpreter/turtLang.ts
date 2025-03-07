@@ -13,7 +13,8 @@ function run(source: string) {
     const parser = new Parser(tokens);
     try {
         const statements = parser.parse();
-        interpreter.interpret(statements);
+        interpreter.init(statements);
+        interpreter.run();
     }
     catch (error) {
         // this will catch any turt-related error (ParseError, RuntimeError, etc.)
