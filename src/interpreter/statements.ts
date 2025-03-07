@@ -12,7 +12,6 @@ export interface StmtVisitor<T> {
     visitExpressionStmt(stmt: ExpressionStmt): T;
     visitFunctionStmt(stmt: FunctionStmt): T;
     visitIfStmt(stmt: IfStmt): T;
-    visitPrintStmt(stmt: PrintStmt): T;
     visitReturnStmt(stmt: ReturnStmt): T;
     visitVarStmt(stmt: VarStmt): T;
     visitWhileStmt(stmt: WhileStmt): T;
@@ -75,19 +74,6 @@ export class IfStmt extends StmtBase {
 
     accept<T>(visitor: StmtVisitor<T>): T {
         return visitor.visitIfStmt(this);
-    }
-}
-
-export class PrintStmt extends StmtBase {
-    expression: ExprBase;
-
-    constructor(expression: ExprBase) {
-        super();
-        this.expression = expression;
-    }
-
-    accept<T>(visitor: StmtVisitor<T>): T {
-        return visitor.visitPrintStmt(this);
     }
 }
 

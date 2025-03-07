@@ -210,11 +210,6 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         }
     }
 
-    visitPrintStmt(stmt: Stmt.PrintStmt) {
-        const value = this.evaluate(stmt.expression);
-        console.log(value.toString());
-    }
-
     visitReturnStmt(stmt: Stmt.ReturnStmt) {
 
     }

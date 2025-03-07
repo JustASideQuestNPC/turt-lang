@@ -7,7 +7,6 @@ import { TParseError } from "./common.js";
  * Reports a parsing error message to the user, then returns (but does not throw) a `TParseError`
  * representing it.
  */
-
 function reportError(token: Token, message: string): TParseError {
     if (token.type === TokenType.EOF) {
         message = `[TurtLang] ParseError (line ${token.line} at end): ${message}`;
@@ -264,7 +263,6 @@ export default class Parser {
                 case TokenType.FOR:
                 case TokenType.WHILE:
                 case TokenType.IF:
-                case TokenType.PRINT:
                 case TokenType.RETURN:
                     return;
             }
@@ -293,7 +291,6 @@ export default class Parser {
     private statement(): Stmt.StmtBase {
         if (this.match(TokenType.FOR))        { return this.forStatement(); }
         if (this.match(TokenType.IF))         { return this.ifStatement(); }
-        if (this.match(TokenType.PRINT))      { return this.printStatement(); }
         if (this.match(TokenType.WHILE))      { return this.whileStatement(); }
         if (this.match(TokenType.LEFT_BRACE)) { return new Stmt.BlockStmt(this.blockStatement()); }
 
@@ -305,12 +302,6 @@ export default class Parser {
         const expr = this.expression();
         this.consume(TokenType.SEMICOLON, "Expected ';' after expression.");
         return new Stmt.ExpressionStmt(expr);
-    }
-
-    private printStatement(): Stmt.PrintStmt {
-        const value = this.expression();
-        this.consume(TokenType.SEMICOLON, "Expected ';' after value.");
-        return new Stmt.PrintStmt(value);
     }
 
     private varDeclaration(): Stmt.VarStmt {
