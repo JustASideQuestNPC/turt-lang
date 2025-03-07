@@ -259,7 +259,7 @@ export default class Parser {
             if (this.previous().type === TokenType.SEMICOLON) { return; }
 
             switch(this.peek().type) {
-                case TokenType.FUNC:
+                case TokenType.FUNCDEF:
                 case TokenType.VAR:
                 case TokenType.FOR:
                 case TokenType.WHILE:
@@ -276,7 +276,8 @@ export default class Parser {
     private declaration(): Stmt.StmtBase {
         // try...catch for synchronizing after a parse error
         try {
-            if (this.match(TokenType.VAR)) { return this.varDeclaration(); }
+            if (this.match(TokenType.FUNCDEF)) { return this.functionStatement(); }
+            if (this.match(TokenType.VAR))  { return this.varDeclaration(); }
             return this.statement();
         }
         catch (error) {
@@ -405,5 +406,26 @@ export default class Parser {
         }
 
         return body;
+    }
+
+    // function declarations
+    private functionStatement(): Stmt.FunctionStmt {
+        const name = this.consume(TokenType.IDENTIFIER, "Expected function name.");
+        this.consume(TokenType.LEFT_PAREN, "Expected '(' after function name.");
+        
+        // parameter list
+        const params: Token[] = [];
+        if (!this.check(TokenType.RIGHT_PAREN)) {
+            do {
+                params.push(this.consume(TokenType.IDENTIFIER, "Expected parameter name."));
+            } while (this.match(TokenType.COMMA));
+        }
+        this.consume(TokenType.RIGHT_PAREN, "Expected ')' after parameter list.");
+
+        // function body
+        this.consume(TokenType.LEFT_BRACE, "Expected '{' before function body.");
+        const body = this.blockStatement();
+
+        return new Stmt.FunctionStmt(name, params, body);
     }
 }

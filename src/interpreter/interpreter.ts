@@ -3,7 +3,7 @@ import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
 import { TRuntimeError, TTypeError } from "./common.js";
 import Environment from "./environment.js";
-import { TurtStdFunction } from "./callable.js";
+import { TurtStdFunction, TurtUserFunction } from "./callable.js";
 
 /**
  * Executes TurtLang code.
@@ -103,12 +103,12 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     visitCallExpr(expr: Expr.CallExpr): LiteralTypeUnion {
         // make sure the callee is an identifier
         if (!(expr.callee instanceof Expr.VariableExpr)) {
-            throw new TRuntimeError("Expected identifier before function call");
+            throw new TRuntimeError("Expected identifier before function call.");
         }
         // make sure the indentifier exists and maps to a function
         const callable = this.evaluate(expr.callee);
-        if (!(callable instanceof TurtStdFunction)) {
-            throw new TTypeError(`'${expr.callee.name.lexeme}' is not a function`);
+        if (!(callable instanceof TurtStdFunction || callable instanceof TurtUserFunction)) {
+            throw new TTypeError(`'${expr.callee.name.lexeme}' is not a function.`);
         }
 
         // evaluate arguments in the order they were passed to the function - the order *probably*
@@ -121,7 +121,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         if (callArgs.length !== callable.numArgs) {
             throw new TRuntimeError(
                 `Incorrect number of arguments for function '${expr.callee.name.lexeme}' ` +
-                `(expected ${callable.numArgs}, recieved ${callArgs.length})`
+                `(expected ${callable.numArgs}, recieved ${callArgs.length}).`
             );
         }
 
@@ -181,8 +181,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     visitBlockStmt(stmt: Stmt.BlockStmt) {
         this.executeBlock(stmt.statements, new Environment(this.environment));
     }
-
-    private executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
+    
+    // this is public so functions can call it
+    executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
         const previous = this.environment;
         try {
             this.environment = environment;
@@ -201,7 +202,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitFunctionStmt(stmt: Stmt.FunctionStmt) {
-
+        this.environment.define(stmt.name.lexeme, new TurtUserFunction(stmt));
     }
 
     visitIfStmt(stmt: Stmt.IfStmt) {

@@ -38,7 +38,7 @@ export enum TokenType {
     AND = "AND",
     ELSE = "ELSE",
     FALSE = "FALSE",
-    FUNC = "FUNC",
+    FUNCDEF = "FUNCDEF",
     FOR = "FOR",
     IF = "IF",
     NULL = "NULL",
@@ -53,19 +53,19 @@ export enum TokenType {
 }
 
 const KEYWORDS: {[key: string]: TokenType} = {
-    "and":    TokenType.AND,
-    "else":   TokenType.ELSE,
-    "false":  TokenType.FALSE,
-    "func":   TokenType.FUNC,
-    "for":    TokenType.FOR,
-    "if":     TokenType.IF,
-    "null":   TokenType.NULL,
-    "or":     TokenType.OR,
-    "print":  TokenType.PRINT,
-    "return": TokenType.RETURN,
-    "true":   TokenType.TRUE,
-    "var":    TokenType.VAR,
-    "while":  TokenType.WHILE,
+    "and":      TokenType.AND,
+    "else":     TokenType.ELSE,
+    "false":    TokenType.FALSE,
+    "function": TokenType.FUNCDEF,
+    "for":      TokenType.FOR,
+    "if":       TokenType.IF,
+    "null":     TokenType.NULL,
+    "or":       TokenType.OR,
+    "print":    TokenType.PRINT,
+    "return":   TokenType.RETURN,
+    "true":     TokenType.TRUE,
+    "var":      TokenType.VAR,
+    "while":    TokenType.WHILE,
 };
 
 /**
