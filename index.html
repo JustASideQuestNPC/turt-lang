@@ -42,10 +42,26 @@
     <script></script>
   </head>
 
-  <body>
+  <body onload=
+    "document.getElementById('codeLine').addEventListener('keydown', function(e) {
+      if (e.key == 'Tab') {
+        e.preventDefault();
+        var start = this.selectionStart;
+        var end = this.selectionEnd;
+    
+        // set textarea value to: text before caret + tab + text after caret
+        this.value = this.value.substring(0, start) +
+          '  ' + this.value.substring(end);
+    
+        // put caret at right position again
+        this.selectionStart =
+          this.selectionEnd = start + 2;
+      }
+    });"
+  >
     <div id="sketchContainer"></div>
     <div class="ui-container">
-      <textarea id="codeLine" rows="10" cols="50" spellcheck="false"></textarea>
+      <textarea id="codeLine" rows="10" cols="50" spellcheck="false" tabindex="-1"></textarea>
       <button id="runCodeLine">Run</button>
     </div>
   </body>
