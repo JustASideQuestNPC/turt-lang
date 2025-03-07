@@ -1,15 +1,31 @@
 import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
-import { TTypeError } from "./common.js";
+import { TRuntimeError, TTypeError } from "./common.js";
 import Environment from "./environment.js";
+import { TurtStdFunction } from "./callable.js";
 
 /**
  * Executes TurtLang code.
  */
 export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
                                             Stmt.StmtVisitor<void> {
-    private environment: Environment = new Environment();
+    globals: Environment; // this is public for importing libraries
+    private environment: Environment;
+
+    constructor() {
+        // setup some test functions - these will be moved into an importable later
+        this.globals = new Environment();
+        this.globals.define("testFunction", new TurtStdFunction(
+            "testFunction", 1,
+            (interpreter, args) => {
+                console.log(args[0]);
+                return null;
+            }
+        ));
+
+        this.environment = this.globals;
+    }
 
     interpret(statements: Stmt.StmtBase[]) {
         try {
@@ -85,14 +101,31 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
     
     visitCallExpr(expr: Expr.CallExpr): LiteralTypeUnion {
-        const calleeName = this.evaluate(expr.callee);
-        // attempt to get the 
+        // make sure the callee is an identifier
+        if (!(expr.callee instanceof Expr.VariableExpr)) {
+            throw new TRuntimeError("Expected identifier before function call");
+        }
+        // make sure the indentifier exists and maps to a function
+        const callable = this.evaluate(expr.callee);
+        if (!(callable instanceof TurtStdFunction)) {
+            throw new TTypeError(`'${expr.callee.name.lexeme}' is not a function`);
+        }
 
         // evaluate arguments in the order they were passed to the function - the order *probably*
         // won't ever be important, but it's useful just in case someone does something really weird
-        // const callArgs = 
+        const callArgs: LiteralTypeUnion[] = [];
+        for (const arg of expr.args) {
+            callArgs.push(this.evaluate(arg));
+        }
+        
+        if (callArgs.length !== callable.numArgs) {
+            throw new TRuntimeError(
+                `Incorrect number of arguments for function '${expr.callee.name.lexeme}' ` +
+                `(expected ${callable.numArgs}, recieved ${callArgs.length})`
+            );
+        }
 
-        return null;
+        return callable.call(this, callArgs);
     }
     
     visitGroupingExpr(expr: Expr.GroupingExpr): LiteralTypeUnion {
@@ -182,7 +215,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
     visitPrintStmt(stmt: Stmt.PrintStmt) {
         const value = this.evaluate(stmt.expression);
-        console.log(value);
+        console.log(value.toString());
     }
 
     visitReturnStmt(stmt: Stmt.ReturnStmt) {

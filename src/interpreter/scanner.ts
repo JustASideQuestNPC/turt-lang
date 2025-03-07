@@ -1,4 +1,9 @@
-export type LiteralTypeUnion = number|string|boolean|Function|null;
+import { TurtCallable } from "./callable";
+
+/**
+ * Union for all types that can be stored in a variable.
+ */
+export type LiteralTypeUnion = number|string|boolean|TurtCallable|null;
 
 export enum TokenType {
     // single-character tokens

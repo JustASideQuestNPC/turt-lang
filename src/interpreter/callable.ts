@@ -1,10 +1,17 @@
 import Interpreter from "./interpreter";
 import { LiteralTypeUnion } from "./scanner";
 
+export interface TurtCallable {
+    name: string;
+    numArgs: number;
+    call: (interpreter: Interpreter, args: LiteralTypeUnion[]) => LiteralTypeUnion;
+    toString: () => string;
+}
+
 /**
- * Represents a callable Turt function.
+ * Represents a function in the Turt standard library.
  */
-export class CallableBase {
+export class TurtStdFunction implements TurtCallable {
     name: string;
     numArgs: number;
     call: (interpreter: Interpreter, args: LiteralTypeUnion[])=>LiteralTypeUnion;
@@ -20,3 +27,7 @@ export class CallableBase {
         return `<function ${this.name}>`;
     }
 }
+
+/**
+ * Represents a user-defined Turt function.
+ */
