@@ -4,6 +4,8 @@ import * as Stmt from "./statements.js";
 import { TRuntimeError, TTypeError } from "./common.js";
 import Environment from "./environment.js";
 import { TurtStdFunction, TurtUserFunction } from "./callable.js";
+import importLibrary from "./importer.js";
+import turtStdLib from "./libraries/standard.js";
 
 /**
  * Executes TurtLang code.
@@ -14,15 +16,9 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     private environment: Environment;
 
     constructor() {
-        // setup some test functions - these will be moved into an importable later
         this.globals = new Environment();
-        this.globals.define("testFunction", new TurtStdFunction(
-            "testFunction", 1,
-            (interpreter, args) => {
-                console.log(args[0]);
-                return null;
-            }
-        ));
+        // the standard library is always loaded
+        importLibrary(this, turtStdLib); 
 
         this.environment = this.globals;
     }
