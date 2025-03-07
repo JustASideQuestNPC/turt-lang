@@ -275,7 +275,8 @@ export default class Parser {
         // try...catch for synchronizing after a parse error
         try {
             if (this.match(TokenType.FUNCDEF)) { return this.functionStatement(); }
-            if (this.match(TokenType.VAR))  { return this.varDeclaration(); }
+            if (this.match(TokenType.RETURN))  { return this.returnStatement(); }
+            if (this.match(TokenType.VAR))     { return this.varDeclaration(); }
             return this.statement();
         }
         catch (error) {
@@ -418,5 +419,17 @@ export default class Parser {
         const body = this.blockStatement();
 
         return new Stmt.FunctionStmt(name, params, body);
+    }
+
+    private returnStatement(): Stmt.ReturnStmt {
+        const keyword = this.previous();
+        let value = null;
+        // return can be used to just end a function, so the value is optional
+        if (!this.check(TokenType.SEMICOLON)) {
+            value = this.expression();
+        }
+
+        this.consume(TokenType.SEMICOLON, "Expected ';' after return value.");
+        return new Stmt.ReturnStmt(keyword, value);
     }
 }

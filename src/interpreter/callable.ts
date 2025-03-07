@@ -1,5 +1,5 @@
 import Environment from "./environment.js";
-import Interpreter from "./interpreter.js";
+import Interpreter, { ReturnInterrupt } from "./interpreter.js";
 import { LiteralTypeUnion } from "./scanner.js";
 import { FunctionStmt } from "./statements.js";
 
@@ -50,7 +50,19 @@ export class TurtUserFunction implements TurtCallable {
         for (let i = 0; i < this.declaration.params.length; ++i) {
             environment.define(this.declaration.params[i].lexeme, args[i]);
         }
-        interpreter.executeBlock(this.declaration.body, environment);
+        
+        // there's no actual error here, i'm just throwing a fake error if i need to return from a
+        // function statement. i will be going to programmer hell when i die.
+        try {
+            interpreter.executeBlock(this.declaration.body, environment);
+        }
+        catch (error) {
+            if (error instanceof ReturnInterrupt) {
+                return error.value;
+            }
+            // re-throw any real errors
+            throw error;
+        }
 
         return null;
     }   

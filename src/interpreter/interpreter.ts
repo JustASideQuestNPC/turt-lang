@@ -8,6 +8,17 @@ import importLibrary from "./importer.js";
 import turtStdLib from "./libraries/standard.js";
 
 /**
+ * Dummy "error" used for returning from a function.
+ */
+export class ReturnInterrupt extends Error {
+    value: LiteralTypeUnion;
+    constructor(value: LiteralTypeUnion) {
+        super();
+        this.value = value;
+    }
+}
+
+/**
  * Executes TurtLang code.
  */
 export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
@@ -211,7 +222,14 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitReturnStmt(stmt: Stmt.ReturnStmt) {
+        // the return value is optional
+        let value = null;
+        if (stmt.value !== null) {
+            value = this.evaluate(stmt.value);
+        }
 
+        // this is cursed and evil and i love it so much
+        throw new ReturnInterrupt(value);
     }
 
     visitVarStmt(stmt: Stmt.VarStmt) {
