@@ -1,6 +1,5 @@
 /**
- * Represents any error in Turt code that doesn't crash the JS environment. This is an abstract
- * class that only exists to make try-catch blocks simpler - do not instantiate it directly.
+ * Represents any error in Turt code that shouldn't crash the JS environment.
  */
 export abstract class TurtError extends Error {
     constructor(message: string) {
@@ -9,10 +8,23 @@ export abstract class TurtError extends Error {
     }
 }
 
-export class TParseError extends TurtError{
+/**
+ * Represents a syntax error found while parsing.
+ */
+export class TParseError extends TurtError {
     constructor(message: string) {
         super(message);
         this.name = "Turt.ParseError";
+    }
+}
+
+/**
+ * Represents an error caused when an array or string index is out of range.
+ */
+export class TRangeError extends TurtError {
+    constructor(message: string) {
+        super(message);
+        this.name = "Turt.RangeError";
     }
 }
 

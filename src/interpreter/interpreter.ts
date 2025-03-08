@@ -1,7 +1,7 @@
 import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
-import { TRuntimeError, TTypeError } from "./common.js";
+import { TRangeError, TRuntimeError, TTypeError } from "./common.js";
 import Environment from "./environment.js";
 import { TurtStdFunction, TurtUserFunction } from "./callable.js";
 import importLibrary from "./importer.js";
@@ -58,6 +58,10 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             console.error(error.message);
             this.hadError = true;
         }
+    }
+
+    visitArrayExpr(expr: Expr.ArrayExpr): LiteralTypeUnion {
+        return null;
     }
 
     visitAssignmentExpr(expr: Expr.AssignmentExpr): LiteralTypeUnion {
@@ -128,8 +132,8 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             throw new TRuntimeError("Expected identifier before function call.");
         }
         // make sure the indentifier exists and maps to a function
-        const callable = this.evaluate(expr.callee);
-        if (!(callable instanceof TurtStdFunction || callable instanceof TurtUserFunction)) {
+        const callee = this.evaluate(expr.callee);
+        if (!(callee instanceof TurtStdFunction || callee instanceof TurtUserFunction)) {
             throw new TTypeError(`'${expr.callee.name.lexeme}' is not a function.`);
         }
 
@@ -140,18 +144,49 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             callArgs.push(this.evaluate(arg));
         }
         
-        if (callArgs.length !== callable.numArgs) {
+        if (callArgs.length !== callee.numArgs) {
             throw new TRuntimeError(
                 `Incorrect number of arguments for function '${expr.callee.name.lexeme}' ` +
-                `(expected ${callable.numArgs}, recieved ${callArgs.length}).`
+                `(expected ${callee.numArgs}, recieved ${callArgs.length}).`
             );
         }
 
-        return callable.call(this, callArgs);
+        return callee.call(this, callArgs);
     }
     
     visitGroupingExpr(expr: Expr.GroupingExpr): LiteralTypeUnion {
         return this.evaluate(expr.expression);
+    }
+
+    visitIndexExpr(expr: Expr.IndexExpr): LiteralTypeUnion {
+        // make sure the indexee is something that can be indexed
+        if (!(expr.indexee instanceof Expr.VariableExpr ||
+              expr.indexee instanceof Expr.LiteralExpr)) {
+            throw new TRuntimeError("Expected identifier or string before indexer.");
+        }
+        const indexee = this.evaluate(expr.indexee);
+        if (!(typeof indexee === "string")) {
+            throw new TTypeError("Only strings can be indexed.");
+        }
+
+        // indexes must be integer numbers
+        const index = this.evaluate(expr.index);
+        if (typeof index !== "number" || index % 1 !== 0) {
+            throw new TTypeError("Indexes must be integer numbers.");
+        }
+
+        // strings have to be manually indexed because wrapping them in a class wasn't worth it
+        if (typeof indexee === "string") {
+            if (index < -indexee.length || index >= indexee.length) {
+                throw new TRangeError("String index out of range.");
+            }
+
+            // negative numbers index backward from the rear
+            if (index < 0) {
+                return indexee[indexee.length + index];
+            }
+            return indexee[index];
+        }
     }
     
     visitLiteralExpr(expr: Expr.LiteralExpr): LiteralTypeUnion {
@@ -224,7 +259,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitFunctionStmt(stmt: Stmt.FunctionStmt) {
-        this.environment.define(stmt.name.lexeme, new TurtUserFunction(stmt));
+        this.environment.define(stmt.name.lexeme, new TurtUserFunction(stmt, this.environment));
     }
 
     visitIfStmt(stmt: Stmt.IfStmt) {

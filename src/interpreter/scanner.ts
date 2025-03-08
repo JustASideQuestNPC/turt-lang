@@ -1,14 +1,17 @@
+import TurtArray from "./array.js";
 import { TurtCallable } from "./callable";
 
 /**
  * Union for all types that can be stored in a variable.
  */
-export type LiteralTypeUnion = number|string|boolean|TurtCallable|null;
+export type LiteralTypeUnion = number|string|boolean|TurtCallable|TurtArray|null;
 
 export enum TokenType {
     // single-character tokens
     LEFT_PAREN = "LEFT_PAREN",
     RIGHT_PAREN = "RIGHT_PAREN",
+    LEFT_BRACKET = "LEFT_BRACKET",
+    RIGHT_BRACKET = "RIGHT_BRACKET",
     LEFT_BRACE = "LEFT_BRACE",
     RIGHT_BRACE = "RIGHT_BRACE",
     COMMA = "COMMA",
@@ -182,6 +185,8 @@ export default class Scanner {
             // handle single-character tokens
             case "(": this.addToken(TokenType.LEFT_PAREN); break;
             case ")": this.addToken(TokenType.RIGHT_PAREN); break;
+            case "[": this.addToken(TokenType.LEFT_BRACKET); break;
+            case "]": this.addToken(TokenType.RIGHT_BRACKET); break;
             case "{": this.addToken(TokenType.LEFT_BRACE); break;
             case "}": this.addToken(TokenType.RIGHT_BRACE); break;
             case ",": this.addToken(TokenType.COMMA); break;

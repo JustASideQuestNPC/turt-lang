@@ -37,16 +37,18 @@ export class TurtStdFunction implements TurtCallable {
  */
 export class TurtUserFunction implements TurtCallable {
     private declaration: FunctionStmt;
+    private closure: Environment;
     numArgs: number;
 
-    constructor(declaration: FunctionStmt) {
+    constructor(declaration: FunctionStmt, closure: Environment) {
         this.declaration = declaration;
+        this.closure = closure;
         this.numArgs = declaration.params.length;
     }
 
     call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
         // to include arguments, we just make a new environment and define them as variables
-        const environment = new Environment(interpreter.globals);
+        const environment = new Environment(this.closure);
         for (let i = 0; i < this.declaration.params.length; ++i) {
             environment.define(this.declaration.params[i].lexeme, args[i]);
         }

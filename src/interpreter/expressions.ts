@@ -7,14 +7,32 @@ export abstract class ExprBase {
 
 // visitor pattern base class
 export interface ExprVisitor<T> {
+    visitArrayExpr(expr: ArrayExpr): T;
     visitAssignmentExpr(expr: AssignmentExpr): T;
     visitBinaryExpr(expr: BinaryExpr): T;
     visitCallExpr(expr: CallExpr): T;
     visitGroupingExpr(expr: GroupingExpr): T;
+    visitIndexExpr(expr: IndexExpr): T;
     visitLiteralExpr(expr: LiteralExpr): T;
     visitLogicalExpr(expr: LogicalExpr): T;
     visitUnaryExpr(expr: UnaryExpr): T;
     visitVariableExpr(expr: VariableExpr): T;
+}
+
+/**
+ * An array initializer list.
+ */
+export class ArrayExpr extends ExprBase {
+    items: ExprBase[];
+    
+    constructor(items: ExprBase[]) {
+        super();
+        this.items = items;
+    }
+
+    accept<T>(visitor: ExprVisitor<T>): T {
+        return visitor.visitArrayExpr(this);
+    }
 }
 
 /**
@@ -88,6 +106,24 @@ export class GroupingExpr extends ExprBase {
 
     accept<T>(visitor: ExprVisitor<T>): T {
         return visitor.visitGroupingExpr(this);
+    }
+}
+
+/**
+ * An index operator
+ */
+export class IndexExpr extends ExprBase {
+    indexee: ExprBase;
+    index: ExprBase;
+    
+    constructor(indexee: ExprBase, index: ExprBase) {
+        super();
+        this.indexee = indexee;
+        this.index = index;
+    }
+
+    accept<T>(visitor: ExprVisitor<T>): T {
+        return visitor.visitIndexExpr(this);
     }
 }
 

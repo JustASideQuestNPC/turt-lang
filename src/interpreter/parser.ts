@@ -181,21 +181,34 @@ export default class Parser {
             return new Expr.VariableExpr(this.previous());
         }
 
+        // array initializer
+        if (this.match(TokenType.LEFT_BRACKET)) {
+            this.advance();
+            console.log("array initializer");
+        }
+
         if (this.match(TokenType.LEFT_PAREN)) {
             let expr = this.expression();
             this.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.");
             return new Expr.GroupingExpr(expr);
         }
 
-        throw reportError(this.peek(), "Expected an expression.")
+        throw reportError(this.peek(), "Expected an expression.");
     }
 
-    // function calls
+    // function calls or array indexing
     private call(): Expr.ExprBase {
         let expr = this.primary();
 
-        // loop this to handle chained function calls (i.e., "foo(1)(2)(3);")
-        while (this.match(TokenType.LEFT_PAREN)) { expr = this.finishCall(expr); }
+        // loop this to handle chained calls or indexers (i.e., "foo(1)[2](3);")
+        while (this.check(TokenType.LEFT_PAREN) || this.check(TokenType.LEFT_BRACKET)) {
+            if (this.match(TokenType.LEFT_PAREN)) {
+                expr = this.finishCall(expr);
+            }
+            else if (this.match(TokenType.LEFT_BRACKET)) {
+                expr = this.indexer(expr);
+            }
+        }
 
         return expr;
     }
@@ -212,6 +225,19 @@ export default class Parser {
         const paren = this.consume(TokenType.RIGHT_PAREN, "Expected ')' after argument list.");
 
         return new Expr.CallExpr(callee, paren, callArgs);
+    }
+
+    private indexer(indexee: Expr.ExprBase) {
+        // index operators must have exactly one argument
+        if (this.check(TokenType.RIGHT_BRACKET)) {
+            throw reportError(this.peek(), "Expected argument to array or string indexer.");
+        }
+
+        const index = this.expression();
+        
+        this.consume(TokenType.RIGHT_BRACKET, "Expected ']' after index.");
+
+        return new Expr.IndexExpr(indexee, index);
     }
 
     private assignment(): Expr.ExprBase {
