@@ -31,6 +31,8 @@ export enum TokenType {
     GREATER_EQUAL = "GREATER_EQUAL",
     LESS = "LESS",
     LESS_EQUAL = "LESS_EQUAL",
+    MOD = "MOD",
+    DOUBLE_MOD = "DOUBLE_MOD",
 
     // literals
     IDENTIFIER = "IDENTIFIER",
@@ -209,6 +211,9 @@ export default class Scanner {
                 break;
             case ">":
                 this.addToken(this.match("=") ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                break;
+            case "%":
+                this.addToken(this.match("%") ? TokenType.DOUBLE_MOD : TokenType.MOD);
                 break;
 
             // for a comment, consume everything until we hit the end of the line

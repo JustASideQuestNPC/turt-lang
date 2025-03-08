@@ -145,9 +145,22 @@ export default class Parser {
 
     // multiplication and division
     private factor(): Expr.ExprBase {
-        let expr = this.unary();
+        let expr = this.modulo();
 
         while(this.match(TokenType.SLASH, TokenType.STAR)) {
+            const operator = this.previous();
+            const right = this.modulo();
+            expr = new Expr.BinaryExpr(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    // remainder (%) and modulo (%%)
+    private modulo(): Expr.ExprBase {
+        let expr = this.unary();
+
+        while(this.match(TokenType.MOD, TokenType.DOUBLE_MOD)) {
             const operator = this.previous();
             const right = this.unary();
             expr = new Expr.BinaryExpr(expr, operator, right);

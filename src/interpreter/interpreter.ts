@@ -105,6 +105,13 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             case TokenType.SLASH:
                 checkNumberOperands(expr.operator, left, right);
                 return Number(left) / Number(right);
+            case TokenType.MOD:
+                checkNumberOperands(expr.operator, left, right);
+                return Number(left) % Number(right);
+            case TokenType.DOUBLE_MOD:
+                checkNumberOperands(expr.operator, left, right);
+                const rem = Number(left) % Number(right);
+                return rem >= 0 ? rem : rem + Number(right);
 
             // comparisons
             case TokenType.LESS:
