@@ -6,7 +6,8 @@ import { LibDataTypeUnion } from "../importer.js";
 const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     // prints a message to the console
     "print": (_, message) => {
-        console.log(message)
+        // why doesn't console.log() automatically call toString()???
+        console.log(`${message}`);
         return null;
     },
 

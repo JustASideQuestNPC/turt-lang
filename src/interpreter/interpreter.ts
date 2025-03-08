@@ -6,6 +6,7 @@ import Environment from "./environment.js";
 import { TurtStdFunction, TurtUserFunction } from "./callable.js";
 import importLibrary from "./importer.js";
 import turtStdLib from "./libraries/standard.js";
+import TurtArray from "./array.js";
 
 /**
  * Dummy "error" used for returning from a function.
@@ -61,7 +62,11 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitArrayExpr(expr: Expr.ArrayExpr): LiteralTypeUnion {
-        return null;
+        const literalItems: LiteralTypeUnion[] = [];
+        for (const item of expr.items) {
+            literalItems.push(this.evaluate(item));
+        }
+        return new TurtArray(literalItems);
     }
 
     visitAssignmentExpr(expr: Expr.AssignmentExpr): LiteralTypeUnion {
@@ -165,8 +170,8 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             throw new TRuntimeError("Expected identifier or string before indexer.");
         }
         const indexee = this.evaluate(expr.indexee);
-        if (!(typeof indexee === "string")) {
-            throw new TTypeError("Only strings can be indexed.");
+        if (!(typeof indexee === "string" || indexee instanceof TurtArray)) {
+            throw new TTypeError("Only arrays and strings can be indexed.");
         }
 
         // indexes must be integer numbers
@@ -187,6 +192,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             }
             return indexee[index];
         }
+        return indexee.index(index);
     }
     
     visitLiteralExpr(expr: Expr.LiteralExpr): LiteralTypeUnion {

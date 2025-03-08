@@ -181,10 +181,8 @@ export default class Parser {
             return new Expr.VariableExpr(this.previous());
         }
 
-        // array initializer
         if (this.match(TokenType.LEFT_BRACKET)) {
-            this.advance();
-            console.log("array initializer");
+            return this.arrayInitializer();
         }
 
         if (this.match(TokenType.LEFT_PAREN)) {
@@ -213,6 +211,20 @@ export default class Parser {
         return expr;
     }
 
+    private arrayInitializer(): Expr.ArrayExpr {
+        // loop through and get all the items (if any)
+        const items: Expr.ExprBase[] = [];
+        if (!this.check(TokenType.RIGHT_BRACKET)) {
+            do {
+                items.push(this.expression());
+            } while (this.match(TokenType.COMMA));
+        }
+
+        this.consume(TokenType.RIGHT_BRACKET, "Expected ']' after array initializer list.");
+
+        return new Expr.ArrayExpr(items);
+    }
+
     private finishCall(callee: Expr.ExprBase): Expr.CallExpr  {
         // loop through and get all the arguments (if any)
         const callArgs: Expr.ExprBase[] = [];
@@ -227,7 +239,7 @@ export default class Parser {
         return new Expr.CallExpr(callee, paren, callArgs);
     }
 
-    private indexer(indexee: Expr.ExprBase) {
+    private indexer(indexee: Expr.ExprBase): Expr.IndexExpr {
         // index operators must have exactly one argument
         if (this.check(TokenType.RIGHT_BRACKET)) {
             throw reportError(this.peek(), "Expected argument to array or string indexer.");
