@@ -10,8 +10,6 @@ const turtStdLib: {[key: string]: LibDataTypeUnion} = {
         console.log(`${message}`);
         return null;
     },
-
-    
 };
 
 export default turtStdLib;

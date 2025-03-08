@@ -48,7 +48,7 @@ export class TurtUserFunction implements TurtCallable {
 
     call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
         // to include arguments, we just make a new environment and define them as variables
-        const environment = new Environment(this.closure);
+        const environment = new Environment(this.closure, interpreter.globals);
         for (let i = 0; i < this.declaration.params.length; ++i) {
             environment.define(this.declaration.params[i].lexeme, args[i]);
         }

@@ -30,15 +30,11 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     private index: number;
     private hadError: boolean;
 
-    constructor() {
+    init(statements: Stmt.StmtBase[]) {
         this.globals = new Environment();
         // the standard library is always loaded
         importLibrary(this, turtStdLib); 
-
         this.environment = this.globals;
-    }
-
-    init(statements: Stmt.StmtBase[]) {
         this.statements = statements;
         this.index = 0;
         this.hadError = false;
@@ -249,7 +245,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     }
 
     visitBlockStmt(stmt: Stmt.BlockStmt) {
-        this.executeBlock(stmt.statements, new Environment(this.environment));
+        this.executeBlock(stmt.statements, new Environment(this.environment, this.globals));
     }
     
     // this is public so functions can call it
