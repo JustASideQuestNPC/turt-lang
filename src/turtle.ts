@@ -141,24 +141,28 @@ export default class Turtle {
         );
 
         if (this.glideSpeed <= 0) {
-            this.drawnShapes.push({
-                type: "line",
-                thickness: this.lineThickness,
-                color: this.currentColor,
-                start: this.position.copy(),
-                end: this.glidePos.copy()
-            });
+            if (this.drawing) {
+                this.drawnShapes.push({
+                    type: "line",
+                    thickness: this.lineThickness,
+                    color: this.currentColor,
+                    start: this.position.copy(),
+                    end: this.glidePos.copy()
+                });
+            }
             this.position.set(this.glidePos);
         }
         else {
             this.gliding_ = true;
-            this.currentShape = {
-                type: "line",
-                thickness: this.lineThickness,
-                color: this.currentColor,
-                start: this.position.copy(),
-                end: this.position.copy()
-            };
+            if (this.drawing) {
+                this.currentShape = {
+                    type: "line",
+                    thickness: this.lineThickness,
+                    color: this.currentColor,
+                    start: this.position.copy(),
+                    end: this.position.copy()
+                };
+            }
         }
     }
 
