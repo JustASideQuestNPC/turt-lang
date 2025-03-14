@@ -2,22 +2,53 @@
  * Onscreen turtle controlled by Turt code.
  */
 export default class Turtle {
-    private p5: p5;
     position: p5.Vector;
     heading: number;
-    drawing: boolean = true;
-    hideSprite: boolean = false;
+    drawing: boolean;
+    hideSprite: boolean;
 
-    constructor(p5: p5) {
+    private p5: p5;
+    private glideSpeed: number;
+    private gliding_: boolean;
+    private glidePos: p5.Vector;
+
+    constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
+        this.glideSpeed = glideSpeed;
+        this.glidePos = this.p5.createVector();
         this.reset()
     }
 
     reset() {
         this.position = this.p5.createVector(this.p5.width / 2, this.p5.height / 2);
-        this.heading = 0;
+        this.heading = -Math.PI / 2;
         this.drawing = true;
         this.hideSprite = false;
+        this.gliding_ = false;
+    }
+
+    /**
+     * Updates glide position.
+     */
+    updateGlide() {
+        if (this.gliding) {
+            // native delta time is in milliseconds
+            const dt = this.p5.deltaTime / 1000;
+            
+            const moveDistance = this.glideSpeed * dt;
+            if (moveDistance > this.position.dist(this.glidePos)) {
+                this.position.set(this.glidePos);
+                this.gliding_ = false;
+                // console.log("stopped gliding");
+            }
+            else {
+                const moveAngle = this.glidePos.copy().sub(this.position).heading();
+                this.position.add(
+                    Math.cos(moveAngle) * moveDistance,
+                    Math.sin(moveAngle) * moveDistance
+                );
+            }
+        }
     }
 
     /**
@@ -33,7 +64,7 @@ export default class Turtle {
 
         this.p5.push();
         this.p5.translate(this.position);
-        this.p5.rotate(this.heading);
+        this.p5.rotate(this.heading + Math.PI / 2);
         this.p5.triangle(
               0, -15,
              12,  15,
@@ -43,9 +74,18 @@ export default class Turtle {
     }
 
     moveFwd(distance: number) {
-        this.position.add(
-            Math.cos(this.heading) * distance,
-            Math.sin(this.heading) * distance
+        this.glidePos.set(
+            this.position.x + Math.cos(this.heading) * distance,
+            this.position.y + Math.sin(this.heading) * distance
         );
+
+        if (this.glideSpeed <= 0) {
+            this.position.set(this.glidePos);
+        }
+        else {
+            this.gliding_ = true;
+        }
     }
+
+    get gliding() { return this.gliding_; }
 }

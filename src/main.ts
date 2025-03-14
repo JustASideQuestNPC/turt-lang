@@ -8,7 +8,9 @@ import { addCanvasListeners } from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
 
+const TURTLE_SPEED = 200;
 let turtle: Turtle;
+let running: boolean = false;
 
 const sketch = (p5: p5) => {
     p5.setup = () => {
@@ -24,18 +26,34 @@ const sketch = (p5: p5) => {
         });
 
         // initialize everything
-        turtle = new Turtle(p5);
+        turtle = new Turtle(p5, TURTLE_SPEED);
         TurtLang.init(turtle);
 
         const codeLine = <HTMLInputElement>document.getElementById("codeLine");
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
-            TurtLang.runLine(codeLine.value);
+            TurtLang.compile(codeLine.value);
+            running = true;
+            // TurtLang.run();
             // codeLine.value = "";
         };
     };
 
     p5.draw = () => {
+        if (running) {
+            if (turtle.gliding) {
+                turtle.updateGlide();
+            }
+            else if (!TurtLang.finished()) {
+                // console.log("running until glide");
+                TurtLang.runUntilGlide();
+            }
+            else {
+                // console.log("reached end of code");
+                running = false;
+            }
+        }
+
         p5.background("#e0e0e0");
 
         turtle.render();

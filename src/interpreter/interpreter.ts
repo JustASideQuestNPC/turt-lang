@@ -30,7 +30,12 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     private environment: Environment;
     private statements: Stmt.StmtBase[];
     private index: number;
-    private hadError: boolean;
+
+    private hadError_: boolean;
+    get hadError() { return this.hadError_; }
+
+    private finished_: boolean;
+    get finished() { return this.finished_; }
 
     // this is public so that the draw library can use it
     turtle: Turtle;
@@ -44,7 +49,8 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.environment = this.globals;
         this.statements = statements;
         this.index = 0;
-        this.hadError = false;
+        this.hadError_ = false;
+        this.finished_ = false;
 
         // load standard libraries
         importLibrary(this, turtStdLib);
@@ -53,21 +59,42 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.turtle.reset();
     }
 
-    run() {
-        while (this.index < this.statements.length) {
-            this.step();
-            if (this.hadError) { break; }
-        }
-    }
-
+    /** Runs a single statement. */
     step() {
+        
+
         try {
             this.execute(this.statements[this.index++]);
+            this.finished_ = (this.index >= this.statements.length);
         }
         catch (error) {
             console.error(error.message);
-            this.hadError = true;
+            this.hadError_ = true;
         }
+    }
+
+    /** Runs all statements. */
+    run() {
+        if (this.finished || this.hadError) { return; }
+
+        while (this.index < this.statements.length) {
+            this.step();
+            if (this.hadError_) { break; }
+        }
+
+        this.finished_ = !this.hadError;
+    }
+
+    /** Runs until the turtle begins gliding to a new position. */
+    runUntilGlide() {
+        if (this.finished || this.hadError) { return; }
+
+        while (this.index < this.statements.length && !this.turtle.gliding) {
+            this.step();
+            if (this.hadError_) { break; }
+        }
+
+        this.finished_ = (this.index >= this.statements.length && !this.hadError);
     }
 
     visitArrayExpr(expr: Expr.ArrayExpr): LiteralTypeUnion {
