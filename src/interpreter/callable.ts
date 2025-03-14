@@ -1,3 +1,4 @@
+import Turtle from "../turtle.js";
 import Environment from "./environment.js";
 import Interpreter, { ReturnInterrupt } from "./interpreter.js";
 import { LiteralTypeUnion } from "./scanner.js";
@@ -7,8 +8,8 @@ export interface TurtCallable {
     numArgs: number;
     call: (interpreter: Interpreter, args: LiteralTypeUnion[]) => LiteralTypeUnion;
 }
-type TurtStdCallback = (interpreter: Interpreter, ...args: LiteralTypeUnion[])=>LiteralTypeUnion;
-type TurtStdVoidCallback = (interpreter: Interpreter, ...args: LiteralTypeUnion[])=>void;
+type TurtStdCallback = (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[])=>LiteralTypeUnion;
+type TurtStdVoidCallback = (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[])=>void;
 
 /**
  * Represents a function in the Turt standard library.
@@ -25,7 +26,7 @@ export class TurtStdFunction implements TurtCallable {
     }
 
     call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
-        const returnValue = this.callback(interpreter, ...args);
+        const returnValue = this.callback(interpreter, interpreter.turtle, ...args);
         if (returnValue === undefined) { return null; }
         return returnValue as LiteralTypeUnion;
     };

@@ -6,6 +6,9 @@
 import { SKETCH_CONFIG } from "../config/sketchConfig.js";
 import { addCanvasListeners } from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
+import Turtle from "./turtle.js";
+
+let turtle: Turtle;
 
 const sketch = (p5: p5) => {
     p5.setup = () => {
@@ -20,6 +23,10 @@ const sketch = (p5: p5) => {
             mouseReleased: mouseReleased
         });
 
+        // initialize everything
+        turtle = new Turtle(p5);
+        TurtLang.init(turtle);
+
         const codeLine = <HTMLInputElement>document.getElementById("codeLine");
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
@@ -30,22 +37,24 @@ const sketch = (p5: p5) => {
 
     p5.draw = () => {
         p5.background("#e0e0e0");
+
+        turtle.render();
     };
 
     function keyPressed(event: KeyboardEvent) {
-        console.log(event);
+        // console.log(event);
     }
 
     function keyReleased(event: KeyboardEvent) {
-        console.log(event);
+        // console.log(event);
     }
 
     function mousePressed(event: MouseEvent) {
-        console.log(event);
+        // console.log(event);
     }
     
     function mouseReleased(event: MouseEvent) {
-        console.log(event);
+        // console.log(event);
     }
 };
 

@@ -1,10 +1,10 @@
+import Turtle from "../turtle.js";
 import { TurtError } from "./common.js";
 import Interpreter from "./interpreter.js";
 import Parser from "./parser.js";
 import Scanner from "./scanner.js";
 
-
-const interpreter = new Interpreter;
+let interpreter: Interpreter;
 
 function run(source: string) {
     const scanner = new Scanner(source);
@@ -29,6 +29,10 @@ function run(source: string) {
 }
 
 namespace TurtLang {
+    export function init(turtle: Turtle) {
+        interpreter = new Interpreter(turtle);
+    }
+
     export function runLine(line: string) {
         run(line);
     }

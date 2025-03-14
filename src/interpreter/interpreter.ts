@@ -7,6 +7,8 @@ import { TurtStdFunction, TurtUserFunction } from "./callable.js";
 import importLibrary from "./importer.js";
 import turtStdLib from "./libraries/standard.js";
 import TurtArray from "./array.js";
+import Turtle from "../turtle.js";
+import turtDrawLib from "./libraries/draw.js";
 
 /**
  * Dummy "error" used for returning from a function.
@@ -30,14 +32,25 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
     private index: number;
     private hadError: boolean;
 
+    // this is public so that the draw library can use it
+    turtle: Turtle;
+
+    constructor(turtle: Turtle) {
+        this.turtle = turtle;
+    }
+
     init(statements: Stmt.StmtBase[]) {
         this.globals = new Environment();
-        // the standard library is always loaded
-        importLibrary(this, turtStdLib); 
         this.environment = this.globals;
         this.statements = statements;
         this.index = 0;
         this.hadError = false;
+
+        // load standard libraries
+        importLibrary(this, turtStdLib);
+        importLibrary(this, turtDrawLib);
+
+        this.turtle.reset();
     }
 
     run() {

@@ -8,12 +8,12 @@ import { LiteralTypeUnion } from "../scanner.js";
  */
 const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     // prints a message to the console
-    "print": (_, message) => {
+    "print": (i, t, message) => {
         console.log(`${message}`);
     },
 
     // pushes to the back of an array
-    "pushBack": (_, array: TurtArray, value: LiteralTypeUnion): number => {
+    "pushBack": (i, t, array: TurtArray, value: LiteralTypeUnion): number => {
         if (array instanceof TurtArray) {
             array.pushBack(value);
             return array.size();
@@ -22,7 +22,7 @@ const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     },
     
     // pops from the back of an array
-    "popBack": (_, array: TurtArray): LiteralTypeUnion => {
+    "popBack": (i, t, array: TurtArray): LiteralTypeUnion => {
         if (array instanceof TurtArray) {
             return array.popBack();
         }
@@ -30,7 +30,7 @@ const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     },
 
     // pushes to the front of an array
-    "pushFront": (_, array: TurtArray, value: LiteralTypeUnion): number => {
+    "pushFront": (i, t, array: TurtArray, value: LiteralTypeUnion): number => {
         if (array instanceof TurtArray) {
             array.pushFront(value);
             return array.size();
@@ -39,7 +39,7 @@ const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     },
     
     // pops from the front of an array
-    "popFront": (_, array: TurtArray): LiteralTypeUnion => {
+    "popFront": (i, t, array: TurtArray): LiteralTypeUnion => {
         if (array instanceof TurtArray) {
             return array.popFront();
         }
