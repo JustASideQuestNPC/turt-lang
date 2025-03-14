@@ -8,6 +8,7 @@ export interface TurtCallable {
     call: (interpreter: Interpreter, args: LiteralTypeUnion[]) => LiteralTypeUnion;
 }
 type TurtStdCallback = (interpreter: Interpreter, ...args: LiteralTypeUnion[])=>LiteralTypeUnion;
+type TurtStdVoidCallback = (interpreter: Interpreter, ...args: LiteralTypeUnion[])=>void;
 
 /**
  * Represents a function in the Turt standard library.
@@ -15,16 +16,18 @@ type TurtStdCallback = (interpreter: Interpreter, ...args: LiteralTypeUnion[])=>
 export class TurtStdFunction implements TurtCallable {
     private name: string;
     numArgs: number;
-    callback: TurtStdCallback;
+    callback: TurtStdCallback|TurtStdVoidCallback;
 
-    constructor(name: string, numArgs: number, callback: TurtStdCallback) {
+    constructor(name: string, numArgs: number, callback: TurtStdCallback|TurtStdVoidCallback) {
         this.name = name;
         this.numArgs = numArgs;
         this.callback = callback;
     }
 
     call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
-        return this.callback(interpreter, ...args)
+        const returnValue = this.callback(interpreter, ...args);
+        if (returnValue === undefined) { return null; }
+        return returnValue as LiteralTypeUnion;
     };
 
     toString(): string {

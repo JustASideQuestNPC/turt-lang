@@ -29,6 +29,8 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     // shows the turtle's sprite
     // disables drawing
     // enables drawing
+    // sets the draw color
+    
 };
 
 export default turtDrawLib;

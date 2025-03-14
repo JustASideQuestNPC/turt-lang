@@ -3,7 +3,7 @@ import Interpreter from "./interpreter.js";
 import { LiteralTypeUnion } from "./scanner.js";
 
 export type LibDataTypeUnion = (
-    (interpreter: Interpreter, ...args: LiteralTypeUnion[]) => LiteralTypeUnion
+    (interpreter: Interpreter, ...args: LiteralTypeUnion[]) => LiteralTypeUnion|void
 );
 
 /**

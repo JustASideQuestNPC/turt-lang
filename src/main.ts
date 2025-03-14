@@ -3,8 +3,6 @@
  * TOTALLY PERFECT library with NO FLAWS WHATSOEVER. On an entirely unrelated note, I would really
  * like to try whatever the p5js devs have been smoking.
  */
-
-// sketch.json holds configurations for the canvas size and a few input things
 import { SKETCH_CONFIG } from "../config/sketchConfig.js";
 import { addCanvasListeners } from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";

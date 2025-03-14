@@ -23,4 +23,32 @@ export default class TurtArray {
     toString(): string {
         return "[" + this.items.join(", ") + "]";
     }
+
+    pushBack(value: LiteralTypeUnion): number {
+        this.items.push(value);
+        return this.items.length;
+    }
+
+    popBack(): LiteralTypeUnion {
+        if (this.items.length > 0) {
+            return this.items.pop();
+        }
+        return null;
+    }
+
+    pushFront(value: LiteralTypeUnion): number {
+        this.items.unshift(value);
+        return this.items.length;
+    }
+
+    popFront(): LiteralTypeUnion {
+        if (this.items.length > 0) {
+            return this.items.shift();
+        }
+        return null;
+    }
+
+    size(): number {
+        return this.items.length;
+    }
 }

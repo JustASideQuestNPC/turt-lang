@@ -1,7 +1,3 @@
-const TURTLE_COLORS = [
-    "#000000",
-];
-
 /**
  * Onscreen turtle controlled by Turt code.
  */
@@ -22,6 +18,6 @@ export default class Turtle {
      * Draws the turtle to the canvas.
      */
     render() {
-
+        
     }
 }
