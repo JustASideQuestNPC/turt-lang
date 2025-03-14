@@ -8,7 +8,9 @@ import { addCanvasListeners } from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
 
-const TURTLE_SPEED = 200;
+// TODO: make this actually work lmao
+const TURTLE_SPEED = 0; // set to 0 for infinite
+
 let turtle: Turtle;
 let running: boolean = false;
 

@@ -1,3 +1,30 @@
+// import * as p5 from "p5";
+
+// object types for everything drawn onscreen
+interface Line {
+    type: "line", // used for distinguishing between shape types
+    thickness: number,
+    color: p5.Color,
+    start: p5.Vector,
+    end: p5.Vector
+}
+interface Polygon {
+    type: "polygon", // used for distinguishing between shape types
+}
+type ShapeUnion = Line|Polygon;
+
+function drawShape(p5: p5, shape: ShapeUnion) {
+    switch (shape.type) {
+        case "line":
+            p5.stroke(shape.color);
+            p5.strokeWeight(shape.thickness);
+            p5.line(shape.start.x, shape.start.y, shape.end.x, shape.end.y);
+            break;
+        case "polygon":
+            break;
+    }
+}
+
 /**
  * Onscreen turtle controlled by Turt code.
  */
@@ -6,17 +33,21 @@ export default class Turtle {
     heading: number;
     drawing: boolean;
     hideSprite: boolean;
+    lineThickness: number;
+    private currentColor: p5.Color;
 
     private p5: p5;
     private glideSpeed: number;
     private gliding_: boolean;
     private glidePos: p5.Vector;
+    private drawnShapes: ShapeUnion[];
+    private currentShape: ShapeUnion;
 
     constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
         this.glideSpeed = glideSpeed;
         this.glidePos = this.p5.createVector();
-        this.reset()
+        this.reset();
     }
 
     reset() {
@@ -25,6 +56,10 @@ export default class Turtle {
         this.drawing = true;
         this.hideSprite = false;
         this.gliding_ = false;
+        this.currentColor = this.p5.color(0);
+        this.drawnShapes = [];
+        this.currentShape = null;
+        this.lineThickness = 2;
     }
 
     /**
@@ -39,7 +74,17 @@ export default class Turtle {
             if (moveDistance > this.position.dist(this.glidePos)) {
                 this.position.set(this.glidePos);
                 this.gliding_ = false;
-                // console.log("stopped gliding");
+                if (this.currentShape) {
+                    switch (this.currentShape.type) {
+                        case "line":
+                            this.currentShape.end.set(this.position);
+                            break;
+                        case "polygon":
+                            break;
+                    }
+
+                    this.drawnShapes.push(this.currentShape);
+                }
             }
             else {
                 const moveAngle = this.glidePos.copy().sub(this.position).heading();
@@ -47,6 +92,16 @@ export default class Turtle {
                     Math.cos(moveAngle) * moveDistance,
                     Math.sin(moveAngle) * moveDistance
                 );
+                // update shape positions for smooth drawing
+                if (this.currentShape) {
+                    switch (this.currentShape.type) {
+                        case "line":
+                            this.currentShape.end.set(this.position);
+                            break;
+                        case "polygon":
+                            break;
+                    }
+                }
             }
         }
     }
@@ -55,6 +110,12 @@ export default class Turtle {
      * Draws the turtle and everything that has been drawn to the canvas.
      */
     render() {
+        for (const shape of this.drawnShapes) {
+            drawShape(this.p5, shape);
+        }
+        // this is only used while gliding
+        if (this.currentShape) { drawShape(this.p5, this.currentShape); }
+
         // draw the turtle's sprite (if shown)
         if (this.hideSprite) { return; }
 
@@ -80,10 +141,34 @@ export default class Turtle {
         );
 
         if (this.glideSpeed <= 0) {
+            this.drawnShapes.push({
+                type: "line",
+                thickness: this.lineThickness,
+                color: this.currentColor,
+                start: this.position.copy(),
+                end: this.glidePos.copy()
+            });
             this.position.set(this.glidePos);
         }
         else {
             this.gliding_ = true;
+            this.currentShape = {
+                type: "line",
+                thickness: this.lineThickness,
+                color: this.currentColor,
+                start: this.position.copy(),
+                end: this.position.copy()
+            };
+        }
+    }
+
+    setColor(r: number|string, g?: number, b?: number, a?: number) {
+        // keeps typescript happy
+        if (typeof r === "string") {
+            this.currentColor = this.p5.color(r);
+        }
+        else {
+            this.currentColor = this.p5.color(r, g, b, a);
         }
     }
 

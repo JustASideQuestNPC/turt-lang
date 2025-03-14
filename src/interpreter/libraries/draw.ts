@@ -79,6 +79,11 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     "penIsDown": (_, turtle): boolean => {
         return turtle.drawing;
     },
+
+    // sets the draw color
+    "setColor": (_, turtle, r: number, g: number, b: number) => {
+        turtle.setColor(r, g, b);
+    }
 };
 
 export default turtDrawLib;
