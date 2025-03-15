@@ -25,16 +25,22 @@
         width: 50ch;
       }
 
-      button {
+      /* button {
         margin-left: 10px;
         font-size: 1.5rem;
         font-family:'Courier New', Courier, monospace;
         padding: 0px 10px;
       }
 
+      input[type="file"] {
+        margin-left: 10px;
+        font-size: 1.5rem;
+        font-family:'Courier New', Courier, monospace;
+        padding: 0px 10px;
+      } */
+
       .ui-container {
-        margin-top: 5;
-        padding: 10px 5px;
+        padding: 5px 5px;
         flex-direction: row;
         /* display: inline-flex; */
       }
@@ -61,9 +67,9 @@
   > -->
   <body>
     <div id="sketchContainer"></div>
-    <!-- <div class="ui-container">
-      <textarea id="codeLine" rows="15" cols="64" spellcheck="false" tabindex="-1"></textarea>
+    <div class="ui-container">
       <button id="runCodeLine">Run</button>
-    </div> -->
+      <input type="file" id="codeFile" accept=".turt,.txt">
+    </div>
   </body>
 </html>

@@ -16,6 +16,23 @@ let programState: "turtle"|"editor";
 
 let turtle: Turtle;
 let running: boolean = false;
+let codeFileInput: HTMLInputElement;
+
+async function loadCodeFile(file: File) {
+    // lock everything down until we're finished processing
+    codeFileInput.disabled = true;
+
+    console.log(`Name: '${file.name}'\nType: ${file.type}\nSize: ${file.size}`);
+    console.log("Reading file...");
+    const text = await file.text();
+    console.log("Compiling...");
+
+    if (TurtLang.compile(text)) {
+        console.log("Done!");
+    }
+
+    codeFileInput.disabled = false;
+}
 
 const sketch = (p5: p5) => {
     p5.setup = () => {
@@ -36,16 +53,25 @@ const sketch = (p5: p5) => {
         TurtLang.init(turtle);
         Editor.init(p5);
 
-        // const codeLine = <HTMLInputElement>document.getElementById("codeLine");
-        // const runButton = document.getElementById("runCodeLine");
-        // runButton.onclick = () => {
-        //     TurtLang.compile(codeLine.value);
-        //     running = true;
-        //     // TurtLang.run();
-        //     // codeLine.value = "";
-        // };
+        codeFileInput = <HTMLInputElement>document.getElementById("codeFile");
+        codeFileInput.addEventListener("change", () => {
+            const files = codeFileInput.files;
+            if (files.length > 0) {
+                const file = files[0];
+                loadCodeFile(file);
+            }
+        });
 
-        programState = "editor";
+        const runButton = document.getElementById("runCodeLine");
+        runButton.onclick = () => {
+            if (TurtLang.loaded()) {
+                running = !running;
+                if (running) { runButton.innerText = "Stop"; }
+                else { runButton.innerText = "Run"; }
+            }
+        };
+
+        programState = "turtle";
     };
 
     p5.draw = () => {
@@ -69,7 +95,7 @@ const sketch = (p5: p5) => {
         }
 
         if (programState === "turtle") {
-            p5.background("#ffffff");
+            p5.background("#e0e0e0");
             turtle.render();
         }
         else {

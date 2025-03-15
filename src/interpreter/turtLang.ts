@@ -5,8 +5,10 @@ import Parser from "./parser.js";
 import Scanner from "./scanner.js";
 
 let interpreter: Interpreter;
+let codeLoaded: boolean = false;
 
 namespace TurtLang {
+    export function loaded() { return codeLoaded; }
 
     export function init(turtle: Turtle) {
         interpreter = new Interpreter(turtle);
@@ -18,6 +20,7 @@ namespace TurtLang {
      */
     // technically Turt isn't compiled, but this is still the best name
     export function compile(source: string): boolean {
+        codeLoaded = false;
         const scanner = new Scanner(source);
         const tokens = scanner.scan();
         const parser = new Parser(tokens);
@@ -26,6 +29,7 @@ namespace TurtLang {
         if (parser.parseFailed) { return false; }
 
         interpreter.init(statements);
+        codeLoaded = true;
         return true;
     }
 
