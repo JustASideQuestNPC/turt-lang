@@ -6,10 +6,12 @@ import { FunctionStmt } from "./statements.js";
 
 export interface TurtCallable {
     numArgs: number;
-    call: (interpreter: Interpreter, args: LiteralTypeUnion[]) => LiteralTypeUnion;
+    call: (interpreter: Interpreter, args: LiteralTypeUnion[]) => Promise<LiteralTypeUnion>;
 }
-type TurtStdCallback = (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[])=>LiteralTypeUnion;
-type TurtStdVoidCallback = (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[])=>void;
+type ReturnType = LiteralTypeUnion|void
+type TurtStdCallback = (
+    (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[]) => ReturnType|Promise<ReturnType>
+);
 
 /**
  * Represents a function in the Turt standard library.
@@ -17,16 +19,16 @@ type TurtStdVoidCallback = (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion
 export class TurtStdFunction implements TurtCallable {
     private name: string;
     numArgs: number;
-    callback: TurtStdCallback|TurtStdVoidCallback;
+    callback: TurtStdCallback;
 
-    constructor(name: string, numArgs: number, callback: TurtStdCallback|TurtStdVoidCallback) {
+    constructor(name: string, numArgs: number, callback: TurtStdCallback) {
         this.name = name;
         this.numArgs = numArgs;
         this.callback = callback;
     }
 
-    call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
-        const returnValue = this.callback(interpreter, interpreter.turtle, ...args);
+    async call(interpreter: Interpreter, args: LiteralTypeUnion[]) {
+        const returnValue = await this.callback(interpreter, interpreter.turtle, ...args);
         if (returnValue === undefined) { return null; }
         return returnValue as LiteralTypeUnion;
     };
@@ -50,7 +52,7 @@ export class TurtUserFunction implements TurtCallable {
         this.numArgs = declaration.params.length;
     }
 
-    call(interpreter: Interpreter, args: LiteralTypeUnion[]): LiteralTypeUnion {
+    async call(interpreter: Interpreter, args: LiteralTypeUnion[]) {
         // to include arguments, we just make a new environment and define them as variables
         const environment = new Environment(this.closure, interpreter.globals);
         for (let i = 0; i < this.declaration.params.length; ++i) {
@@ -60,7 +62,7 @@ export class TurtUserFunction implements TurtCallable {
         // there's no actual error here, i'm just throwing a fake error if i need to return from a
         // function statement. i will be going to programmer hell when i die.
         try {
-            interpreter.executeBlock(this.declaration.body, environment);
+            await interpreter.executeBlock(this.declaration.body, environment);
         }
         catch (error) {
             if (error instanceof ReturnInterrupt) {

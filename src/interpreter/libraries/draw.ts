@@ -31,12 +31,12 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     },
 
     // moves the turtle forward or backward
-    "moveFwd": (_, turtle, distance: number) => {
-        turtle.moveFwd(distance);
+    "moveFwd": async (_, turtle, distance: number) => {
+        await turtle.moveFwd(distance);
     },
 
     // returns the turtle's heading in degrees
-    "getAngle": (_, turtle): number => {
+    "getAngle": (_, turtle) => {
         return toDegrees(turtle.heading + 90);
     },
 
@@ -46,7 +46,7 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     },
 
     // rotates the turtle by some amount of degrees
-    "rotate":  (_, turtle, angle: number) => {
+    "rotate": (_, turtle, angle: number) => {
         turtle.heading += toRadians(angle);
     },
 
@@ -61,43 +61,43 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     },
 
     // returns whether the turtle is hidden
-    "isHidden": (_, turtle): boolean => {
+    "isHidden": (_, turtle) => {
         return turtle.hideSprite;
     },
 
     // disables drawing
-    "penUp": (_, turtle) => {
-        turtle.penUp();
+    "penUp": async (_, turtle) => {
+        await turtle.penUp();
     },
 
     // enables drawing
-    "penDown": (_, turtle) => {
-        turtle.penDown();
+    "penDown": async (_, turtle) => {
+        await turtle.penDown();
     },
 
     // returns whether drawing is enabled
-    "penIsDown": (_, turtle): boolean => {
+    "penIsDown": (_, turtle) => {
         return turtle.drawing;
     },
 
     // sets the draw color
-    "setColor": (_, turtle, r: number, g: number, b: number) => {
-        turtle.setColor(r, g, b);
+    "setColor": async (_, turtle, r: number, g: number, b: number) => {
+        await turtle.setColor(r, g, b);
     },
 
     // begins drawing a polygon
-    "beginPoly": (_, turtle) => {
-        turtle.beginPoly();
+    "beginPoly": async (_, turtle) => {
+        await turtle.beginPoly();
     },
 
     // stops drawing a polygon
-    "endPoly": (_, turtle) => {
-        turtle.endPoly();
+    "endPoly": async (_, turtle) => {
+        await turtle.endPoly();
     },
 
     // drops a vertex in a polygon
-    "dropVertex": (_, turtle) => {
-        turtle.dropVertex();
+    "dropVertex": async (_, turtle) => {
+        await turtle.dropVertex();
     },
 };
 

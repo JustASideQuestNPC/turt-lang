@@ -1,5 +1,4 @@
 import Turtle from "../turtle.js";
-import { TurtError } from "./common.js";
 import Interpreter from "./interpreter.js";
 import Parser from "./parser.js";
 import Scanner from "./scanner.js";
@@ -33,16 +32,8 @@ namespace TurtLang {
         return true;
     }
 
-    export function step() {
-        interpreter.run();
-    }
-
-    export function run() {
-        interpreter.run();
-    }
-
-    export function runUntilGlide() {
-        interpreter.runUntilGlide();
+    export async function run() {
+        await interpreter.run();
     }
 
     export function finished(): boolean {

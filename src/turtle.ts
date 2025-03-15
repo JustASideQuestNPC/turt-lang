@@ -1,6 +1,7 @@
 // import * as p5 from "p5";
 
 import { TRuntimeError } from "./interpreter/common.js";
+import Interpreter from "./interpreter/interpreter.js";
 
 // object types for everything drawn onscreen
 interface Line {
@@ -55,6 +56,8 @@ export default class Turtle {
     private currentShape: ShapeUnion;
     private drawingPolygon: boolean;
 
+    parentInterpreter: Interpreter;
+
     constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
         this.glideSpeed = glideSpeed;
@@ -86,7 +89,7 @@ export default class Turtle {
             const moveDistance = this.glideSpeed * dt;
             if (moveDistance > this.position.dist(this.glidePos)) {
                 this.position.set(this.glidePos);
-                this.gliding_ = false;
+                
                 if (this.currentShape) {
                     switch (this.currentShape.type) {
                         case "line":
@@ -100,6 +103,9 @@ export default class Turtle {
                         this.drawnShapes.push(this.currentShape);
                     }
                 }
+
+                this.gliding_ = false;
+                this.parentInterpreter.resumeGlide();
             }
             else {
                 const moveAngle = this.glidePos.copy().sub(this.position).heading();
@@ -139,6 +145,7 @@ export default class Turtle {
         this.p5.fill("#ffffff");
 
         this.p5.push();
+        // console.log(`(${this.position.x}, ${this.position.y})`);
         this.p5.translate(this.position);
         this.p5.rotate(this.heading + Math.PI / 2);
         this.p5.triangle(
@@ -149,7 +156,7 @@ export default class Turtle {
         this.p5.pop();
     }
 
-    moveFwd(distance: number) {
+    async moveFwd(distance: number) {
         this.glidePos.set(
             this.position.x + Math.cos(this.heading) * distance,
             this.position.y + Math.sin(this.heading) * distance
@@ -181,7 +188,7 @@ export default class Turtle {
         }
     }
 
-    setColor(r: number|string, g?: number, b?: number, a?: number) {
+    async setColor(r: number|string, g?: number, b?: number, a?: number) {
         if (this.drawingPolygon) { return; }
 
         // keeps typescript happy
@@ -193,17 +200,17 @@ export default class Turtle {
         }
     }
 
-    penUp() {
+    async penUp() {
         if (this.drawingPolygon) { return; }
         this.drawing = false;
     }
 
-    penDown() {
+    async penDown() {
         if (this.drawingPolygon) { return; }
         this.drawing = true;
     }
 
-    beginPoly() {
+    async beginPoly() {
         if (this.drawingPolygon || !this.drawing) { return; }
 
         // finish drawing a line
@@ -222,7 +229,7 @@ export default class Turtle {
         this.drawingPolygon = true;
     }
     
-    endPoly() {
+    async endPoly() {
         if (!this.drawingPolygon) { return; }
 
         // place a final endpoint where we end the shape
@@ -233,7 +240,7 @@ export default class Turtle {
         this.drawingPolygon = false;
     }
 
-    dropVertex() {
+    async dropVertex() {
         if (!this.drawingPolygon) { return; }
         
         if (this.currentShape && this.currentShape.type === "polygon") {

@@ -6,16 +6,14 @@
 import SKETCH_CONFIG from "../config/sketchConfig.js";
 import addCanvasListeners from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
-import Editor from "./editor/editor.js";
 import Turtle from "./turtle.js";
 
 // TODO: make this actually work lmao
-const TURTLE_SPEED = 0; // set to 0 for infinite
+const TURTLE_SPEED = 400; // set to 0 for infinite
 
 let programState: "turtle"|"editor";
 
 let turtle: Turtle;
-let running: boolean = false;
 let codeFileInput: HTMLInputElement;
 
 async function loadCodeFile(file: File) {
@@ -51,7 +49,6 @@ const sketch = (p5: p5) => {
         // initialize everything
         turtle = new Turtle(p5, TURTLE_SPEED);
         TurtLang.init(turtle);
-        Editor.init(p5);
 
         codeFileInput = <HTMLInputElement>document.getElementById("codeFile");
         codeFileInput.addEventListener("change", () => {
@@ -65,9 +62,7 @@ const sketch = (p5: p5) => {
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
             if (TurtLang.loaded()) {
-                running = !running;
-                if (running) { runButton.innerText = "Stop"; }
-                else { runButton.innerText = "Run"; }
+                TurtLang.run();
             }
         };
 
@@ -75,53 +70,24 @@ const sketch = (p5: p5) => {
     };
 
     p5.draw = () => {
-        if (programState === "turtle") {
-            if (running) {
-                if (turtle.gliding) {
-                    turtle.updateGlide();
-                }
-                else if (!TurtLang.finished()) {
-                    // console.log("running until glide");
-                    TurtLang.runUntilGlide();
-                }
-                else {
-                    // console.log("reached end of code");
-                    running = false;
-                }
-            }
-        }
-        else {
-            Editor.update();
+        if (turtle.gliding) {
+            console.log("updating glide");
+            turtle.updateGlide();
         }
 
-        if (programState === "turtle") {
-            p5.background("#e0e0e0");
-            turtle.render();
-        }
-        else {
-            Editor.render();
-        }
+        p5.background("#e0e0e0");
+        turtle.render();
     };
 
-    function keyPressed(event: KeyboardEvent) {
-        // console.log(event);
-    }
+    function keyPressed(event: KeyboardEvent) {}
 
-    function keyReleased(event: KeyboardEvent) {
-        // console.log(event);
-    }
+    function keyReleased(event: KeyboardEvent) {}
 
-    function mousePressed(event: MouseEvent) {
-        // console.log(event);
-    }
+    function mousePressed(event: MouseEvent) {}
     
-    function mouseReleased(event: MouseEvent) {
-        // console.log(event);
-    }
+    function mouseReleased(event: MouseEvent) {}
 
-    function mouseWheel(event: WheelEvent) {
-        Editor.scroll(event.deltaY);
-    }
+    function mouseWheel(event: WheelEvent) {}
 };
 
 // error checks need to be disabled here because otherwise typescript explodes for some reason

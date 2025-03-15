@@ -10,15 +10,21 @@ export default class Environment {
     // global scope; used for preventing library functions from being redefined
     private globals: Environment;
     enclosing: Environment;
+    index: number; // for debugging
 
     constructor();
     constructor(enclosing: Environment, globals: Environment);
     constructor(enclosing: Environment=null, globals: Environment=null) {
         this.enclosing = enclosing;
         this.globals = globals;
+        if (enclosing) { this.index = enclosing.index + 1 }
+        else { this.index = 0; }
+        // console.log(`created environment ${this.index}`);
     }
 
     define(name: string, value: LiteralTypeUnion) {
+        // console.log(`defining ${name} in environment ${this.index}`);
+
         // library functions can't be redefined in *any* scope
         if (this.globals !== null && this.globals.variables[name] instanceof TurtStdFunction) {
             throw new TRuntimeError(`'${name}' is a builtin function and cannot be redefined.`);
@@ -34,6 +40,8 @@ export default class Environment {
     }
 
     assign(name: Token, value: LiteralTypeUnion) {
+        // console.log(`assigning to ${name} in environment ${this.index}`);
+
         // libary functions can't be reassigned
         if (this.globals !== null &&
             this.globals.variables[name.lexeme] instanceof TurtStdFunction) {
@@ -60,6 +68,7 @@ export default class Environment {
     }
 
     get(name: Token): LiteralTypeUnion {
+        // console.log(`getting ${name.lexeme} from environment ${this.index}`);
         if (this.variables[name.lexeme] !== undefined) {
             return this.variables[name.lexeme];
         }

@@ -24,7 +24,7 @@ export class ReturnInterrupt extends Error {
 /**
  * Executes TurtLang code.
  */
-export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
+export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralTypeUnion>>,
                                             Stmt.StmtVisitor<void> {
     globals: Environment; // this is public for importing libraries
     private environment: Environment;
@@ -39,9 +39,11 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
     // this is public so that the draw library can use it
     turtle: Turtle;
+    resumeGlide: () => void; // will be called by the turtle
 
     constructor(turtle: Turtle) {
         this.turtle = turtle;
+        turtle.parentInterpreter = this;
     }
 
     init(statements: Stmt.StmtBase[]) {
@@ -59,62 +61,43 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         this.turtle.reset();
     }
 
-    /** Runs a single statement. */
-    step() {
+    /** Runs all statements. */
+    async run() {
         if (this.finished || this.hadError) { return; }
-        
+
+        console.log("running...");
         try {
-            this.execute(this.statements[this.index++]);
-            this.finished_ = (this.index >= this.statements.length);
+            while (this.index < this.statements.length) {
+                await this.execute(this.statements[this.index++]);
+                if (this.hadError_) { break; }
+            }
         }
         catch (error) {
-            console.error(error.message);
+            console.error(`[TurtLang] ${error.message}`);
             this.hadError_ = true;
-        }
-    }
-
-    /** Runs all statements. */
-    run() {
-        if (this.finished || this.hadError) { return; }
-
-        while (this.index < this.statements.length) {
-            this.step();
-            if (this.hadError_) { break; }
         }
 
         this.finished_ = !this.hadError;
     }
 
-    /** Runs until the turtle begins gliding to a new position. */
-    runUntilGlide() {
-        if (this.finished || this.hadError) { return; }
-
-        while (this.index < this.statements.length && !this.turtle.gliding) {
-            this.step();
-            if (this.hadError_) { break; }
-        }
-
-        this.finished_ = (this.index >= this.statements.length && !this.hadError);
-    }
-
-    visitArrayExpr(expr: Expr.ArrayExpr): LiteralTypeUnion {
+    async visitArrayExpr(expr: Expr.ArrayExpr): Promise<LiteralTypeUnion> {
         const literalItems: LiteralTypeUnion[] = [];
         for (const item of expr.items) {
-            literalItems.push(this.evaluate(item));
+            literalItems.push(await this.evaluate(item));
         }
         return new TurtArray(literalItems);
     }
 
-    visitAssignmentExpr(expr: Expr.AssignmentExpr): LiteralTypeUnion {
-        const value = this.evaluate(expr.value);
+    async visitAssignmentExpr(expr: Expr.AssignmentExpr): Promise<LiteralTypeUnion> {
+        const value = await this.evaluate(expr.value);
         this.environment.assign(expr.name, value);
         return value;
     }
 
-    visitBinaryExpr(expr: Expr.BinaryExpr): LiteralTypeUnion {
+    async visitBinaryExpr(expr: Expr.BinaryExpr): Promise<LiteralTypeUnion> {
         // cascade down the left and right sides and evaluate all of them first
-        const left = this.evaluate(expr.left);
-        const right = this.evaluate(expr.right);
+        const left = await this.evaluate(expr.left);
+        const right = await this.evaluate(expr.right);
 
         switch (expr.operator.type) {
             // math operations
@@ -174,13 +157,13 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         return null;
     }
     
-    visitCallExpr(expr: Expr.CallExpr): LiteralTypeUnion {
+    async visitCallExpr(expr: Expr.CallExpr): Promise<LiteralTypeUnion> {
         // make sure the callee is an identifier
         if (!(expr.callee instanceof Expr.VariableExpr)) {
             throw new TRuntimeError("Expected identifier before function call.");
         }
         // make sure the indentifier exists and maps to a function
-        const callee = this.evaluate(expr.callee);
+        const callee = await this.evaluate(expr.callee);
         if (!(callee instanceof TurtStdFunction || callee instanceof TurtUserFunction)) {
             throw new TTypeError(`'${expr.callee.name.lexeme}' is not a function.`);
         }
@@ -189,7 +172,7 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         // won't ever be important, but it's useful just in case someone does something really weird
         const callArgs: LiteralTypeUnion[] = [];
         for (const arg of expr.args) {
-            callArgs.push(this.evaluate(arg));
+            callArgs.push(await this.evaluate(arg));
         }
         
         if (callArgs.length !== callee.numArgs) {
@@ -199,26 +182,26 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
             );
         }
 
-        return callee.call(this, callArgs);
+        return await callee.call(this, callArgs);
     }
     
-    visitGroupingExpr(expr: Expr.GroupingExpr): LiteralTypeUnion {
-        return this.evaluate(expr.expression);
+    async visitGroupingExpr(expr: Expr.GroupingExpr): Promise<LiteralTypeUnion> {
+        return await this.evaluate(expr.expression);
     }
 
-    visitIndexExpr(expr: Expr.IndexExpr): LiteralTypeUnion {
+    async visitIndexExpr(expr: Expr.IndexExpr): Promise<LiteralTypeUnion> {
         // make sure the indexee is something that can be indexed
         if (!(expr.indexee instanceof Expr.VariableExpr ||
               expr.indexee instanceof Expr.LiteralExpr)) {
             throw new TRuntimeError("Expected identifier or string before indexer.");
         }
-        const indexee = this.evaluate(expr.indexee);
+        const indexee = await this.evaluate(expr.indexee);
         if (!(typeof indexee === "string" || indexee instanceof TurtArray)) {
             throw new TTypeError("Only arrays and strings can be indexed.");
         }
 
         // indexes must be integer numbers
-        const index = this.evaluate(expr.index);
+        const index = await this.evaluate(expr.index);
         if (typeof index !== "number" || index % 1 !== 0) {
             throw new TTypeError("Indexes must be integer numbers.");
         }
@@ -238,12 +221,12 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         return indexee.index(index);
     }
     
-    visitLiteralExpr(expr: Expr.LiteralExpr): LiteralTypeUnion {
+    async visitLiteralExpr(expr: Expr.LiteralExpr): Promise<LiteralTypeUnion> {
         return expr.value;
     }
     
-    visitLogicalExpr(expr: Expr.LogicalExpr): LiteralTypeUnion {
-        const left = this.evaluate(expr.left);
+    async visitLogicalExpr(expr: Expr.LogicalExpr): Promise<LiteralTypeUnion> {
+        const left = await this.evaluate(expr.left);
 
         if (expr.operator.type === TokenType.OR) {
             // short-circuit if the left side is true since the or will always be true then
@@ -255,12 +238,12 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         }
 
         // only evaluate the right side if we have to
-        return this.evaluate(expr.right);
+        return await this.evaluate(expr.right);
     }
     
-    visitUnaryExpr(expr: Expr.UnaryExpr): LiteralTypeUnion {
+    async visitUnaryExpr(expr: Expr.UnaryExpr): Promise<LiteralTypeUnion> {
         // cascade down the right side and evaluate everything else
-        const right = this.evaluate(expr.right);
+        const right = await this.evaluate(expr.right);
         
         switch (expr.operator.type) {
             // negation
@@ -276,26 +259,26 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         return null;
     }
     
-    visitVariableExpr(expr: Expr.VariableExpr): LiteralTypeUnion {
+    async visitVariableExpr(expr: Expr.VariableExpr): Promise<LiteralTypeUnion> {
         return this.environment.get(expr.name);
     }
 
-    private evaluate(expr: Expr.ExprBase): LiteralTypeUnion {
-        return expr.accept(this);
+    async evaluate(expr: Expr.ExprBase): Promise<LiteralTypeUnion> {
+        return await expr.accept(this);
     }
 
-    visitBlockStmt(stmt: Stmt.BlockStmt) {
-        this.executeBlock(stmt.statements, new Environment(this.environment, this.globals));
+    async visitBlockStmt(stmt: Stmt.BlockStmt) {
+        await this.executeBlock(stmt.statements, new Environment(this.environment, this.globals));
     }
     
     // this is public so functions can call it
-    executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
+    async executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
         const previous = this.environment;
         try {
             this.environment = environment;
             
             for (const statement of statements) {
-                this.execute(statement);
+                await this.execute(statement);
             }
         }
         finally {
@@ -303,52 +286,62 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
         }
     }
 
-    visitExpressionStmt(stmt: Stmt.ExpressionStmt) {
-        this.evaluate(stmt.expression);
+    async visitExpressionStmt(stmt: Stmt.ExpressionStmt) {
+        await this.evaluate(stmt.expression);
     }
 
-    visitFunctionStmt(stmt: Stmt.FunctionStmt) {
+    async visitFunctionStmt(stmt: Stmt.FunctionStmt) {
         this.environment.define(stmt.name.lexeme, new TurtUserFunction(stmt, this.environment));
     }
 
-    visitIfStmt(stmt: Stmt.IfStmt) {
-        if (isTruthy(this.evaluate(stmt.condition))) {
-            this.execute(stmt.thenBranch);
+    async visitIfStmt(stmt: Stmt.IfStmt) {
+        if (isTruthy(await this.evaluate(stmt.condition))) {
+            await this.execute(stmt.thenBranch);
         }
         else if (stmt.elseBranch !== null) {
-            this.execute(stmt.elseBranch);
+            await this.execute(stmt.elseBranch);
         }
     }
 
-    visitReturnStmt(stmt: Stmt.ReturnStmt) {
+    async visitReturnStmt(stmt: Stmt.ReturnStmt) {
         // the return value is optional
         let value = null;
         if (stmt.value !== null) {
-            value = this.evaluate(stmt.value);
+            value = await this.evaluate(stmt.value);
         }
 
         // this is cursed and evil and i love it so much
         throw new ReturnInterrupt(value);
     }
 
-    visitVarStmt(stmt: Stmt.VarStmt) {
+    async visitVarStmt(stmt: Stmt.VarStmt) {
         let value: LiteralTypeUnion = null;
         // evaluate the initializer if it exists, otherwise set the variable to null
         if (stmt.initializer !== null) {
-            value = this.evaluate(stmt.initializer);
+            value = await this.evaluate(stmt.initializer);
         }
 
         this.environment.define(stmt.name.lexeme, value);
     }
 
-    visitWhileStmt(stmt: Stmt.WhileStmt) {
-        while(isTruthy(this.evaluate(stmt.condition))) {
-            this.execute(stmt.body);
+    async visitWhileStmt(stmt: Stmt.WhileStmt) {
+        while(isTruthy(await this.evaluate(stmt.condition))) {
+            await this.execute(stmt.body);
         }
     }
 
-    private execute(stmt: Stmt.StmtBase) {
-        stmt.accept(this);
+    async execute(stmt: Stmt.StmtBase) {
+        if (this.turtle.gliding) {
+            // console.log("pausing...");
+            await new Promise((resolve) => {
+                this.resumeGlide = () => {
+                    resolve(null);
+                };
+            });
+            // console.log("resuming...");
+        }
+
+        await stmt.accept(this);
     }
 }
 

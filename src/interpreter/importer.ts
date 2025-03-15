@@ -3,8 +3,9 @@ import { TurtStdFunction } from "./callable.js";
 import Interpreter from "./interpreter.js";
 import { LiteralTypeUnion } from "./scanner.js";
 
+type ReturnType = LiteralTypeUnion|void
 export type LibDataTypeUnion = (
-    (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[]) => LiteralTypeUnion|void
+    (i: Interpreter, t: Turtle, ...args: LiteralTypeUnion[]) => ReturnType|Promise<ReturnType>
 );
 
 /**
