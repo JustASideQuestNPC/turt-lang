@@ -5,10 +5,11 @@ interface Args {
     keyReleased?:(e?:KeyboardEvent)=>void
     mousePressed?:(e?:MouseEvent)=>void
     mouseReleased?:(e?:MouseEvent)=>void
+    mouseWheel?:(e?:WheelEvent)=>void
 }
 
-export function addCanvasListeners({ canvas, disableContextMenu=true, keyPressed, keyReleased,
-    mousePressed, mouseReleased }: Args) {
+export default function addCanvasListeners({ canvas, disableContextMenu=true, keyPressed,
+    keyReleased, mousePressed, mouseReleased, mouseWheel }: Args) {
 
     // add event listeners if any of them are defined
     if (keyPressed || keyReleased || mousePressed || mouseReleased || disableContextMenu) {
@@ -34,6 +35,9 @@ export function addCanvasListeners({ canvas, disableContextMenu=true, keyPressed
         }
         if (keyReleased) {
             c.addEventListener("keyup", keyReleased);
+        }
+        if (scroll) {
+            c.addEventListener("wheel", mouseWheel);
         }
 
         if (disableContextMenu) {
