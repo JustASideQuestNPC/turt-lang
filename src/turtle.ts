@@ -1,5 +1,7 @@
 // import * as p5 from "p5";
 
+import { TRuntimeError } from "./interpreter/common.js";
+
 // object types for everything drawn onscreen
 interface Line {
     type: "line", // used for distinguishing between shape types
@@ -10,6 +12,8 @@ interface Line {
 }
 interface Polygon {
     type: "polygon", // used for distinguishing between shape types
+    color: p5.Color,
+    vertices: p5.Vector[];
 }
 type ShapeUnion = Line|Polygon;
 
@@ -21,6 +25,13 @@ function drawShape(p5: p5, shape: ShapeUnion) {
             p5.line(shape.start.x, shape.start.y, shape.end.x, shape.end.y);
             break;
         case "polygon":
+            p5.noStroke();
+            p5.fill(shape.color);
+            p5.beginShape();
+            for (const v of shape.vertices) {
+                p5.vertex(v.x, v.y);
+            }
+            p5.endShape("close");
             break;
     }
 }
@@ -42,6 +53,7 @@ export default class Turtle {
     private glidePos: p5.Vector;
     private drawnShapes: ShapeUnion[];
     private currentShape: ShapeUnion;
+    private drawingPolygon: boolean;
 
     constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
@@ -60,6 +72,7 @@ export default class Turtle {
         this.drawnShapes = [];
         this.currentShape = null;
         this.lineThickness = 2;
+        this.drawingPolygon = false;
     }
 
     /**
@@ -83,7 +96,9 @@ export default class Turtle {
                             break;
                     }
 
-                    this.drawnShapes.push(this.currentShape);
+                    if (this.currentShape.type !== "polygon") {
+                        this.drawnShapes.push(this.currentShape);
+                    }
                 }
             }
             else {
@@ -141,7 +156,7 @@ export default class Turtle {
         );
 
         if (this.glideSpeed <= 0) {
-            if (this.drawing) {
+            if (this.drawing && !this.drawingPolygon) {
                 this.drawnShapes.push({
                     type: "line",
                     thickness: this.lineThickness,
@@ -154,7 +169,7 @@ export default class Turtle {
         }
         else {
             this.gliding_ = true;
-            if (this.drawing) {
+            if (this.drawing && !this.drawingPolygon) {
                 this.currentShape = {
                     type: "line",
                     thickness: this.lineThickness,
@@ -167,12 +182,65 @@ export default class Turtle {
     }
 
     setColor(r: number|string, g?: number, b?: number, a?: number) {
+        if (this.drawingPolygon) { return; }
+
         // keeps typescript happy
         if (typeof r === "string") {
             this.currentColor = this.p5.color(r);
         }
         else {
             this.currentColor = this.p5.color(r, g, b, a);
+        }
+    }
+
+    penUp() {
+        if (this.drawingPolygon) { return; }
+        this.drawing = false;
+    }
+
+    penDown() {
+        if (this.drawingPolygon) { return; }
+        this.drawing = true;
+    }
+
+    beginPoly() {
+        if (this.drawingPolygon || !this.drawing) { return; }
+
+        // finish drawing a line
+        if (this.currentShape) {
+            this.drawnShapes.push(this.currentShape);
+        }
+
+        // place the first vertex at our position
+        this.currentShape = {
+            type: "polygon",
+            color: this.currentColor,
+            vertices: []
+        };
+        this.dropVertex();
+
+        this.drawingPolygon = true;
+    }
+    
+    endPoly() {
+        if (!this.drawingPolygon) { return; }
+
+        // place a final endpoint where we end the shape
+        this.dropVertex();
+        this.drawnShapes.push(this.currentShape);
+        this.currentShape = null;
+
+        this.drawingPolygon = false;
+    }
+
+    dropVertex() {
+        if (!this.drawingPolygon) { return; }
+        
+        if (this.currentShape && this.currentShape.type === "polygon") {
+            this.currentShape.vertices.push(this.position.copy());
+        }
+        else {
+            throw new TRuntimeError("Cannot drop vertices in a non-polygon.");
         }
     }
 

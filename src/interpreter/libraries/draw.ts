@@ -37,12 +37,12 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
 
     // returns the turtle's heading in degrees
     "getAngle": (_, turtle): number => {
-        return toDegrees(turtle.heading);
+        return toDegrees(turtle.heading + 90);
     },
 
     // sets the turtle's heading in degrees
     "setAngle": (_, turtle, angle: number) => {
-        turtle.heading = toRadians(angle);
+        turtle.heading = toRadians(angle - 90);
     },
 
     // rotates the turtle by some amount of degrees
@@ -67,12 +67,12 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
 
     // disables drawing
     "penUp": (_, turtle) => {
-        turtle.drawing = false;
+        turtle.penUp();
     },
 
     // enables drawing
     "penDown": (_, turtle) => {
-        turtle.drawing = true;
+        turtle.penDown();
     },
 
     // returns whether drawing is enabled
@@ -83,7 +83,22 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     // sets the draw color
     "setColor": (_, turtle, r: number, g: number, b: number) => {
         turtle.setColor(r, g, b);
-    }
+    },
+
+    // begins drawing a polygon
+    "beginPoly": (_, turtle) => {
+        turtle.beginPoly();
+    },
+
+    // stops drawing a polygon
+    "endPoly": (_, turtle) => {
+        turtle.endPoly();
+    },
+
+    // drops a vertex in a polygon
+    "dropVertex": (_, turtle) => {
+        turtle.dropVertex();
+    },
 };
 
 export default turtDrawLib;
