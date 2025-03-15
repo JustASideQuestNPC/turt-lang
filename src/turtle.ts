@@ -135,16 +135,16 @@ export default class Turtle {
         if (this.hideSprite) { return; }
 
         this.p5.stroke("#000000");
-        this.p5.strokeWeight(3);
+        this.p5.strokeWeight(2);
         this.p5.fill("#ffffff");
 
         this.p5.push();
         this.p5.translate(this.position);
         this.p5.rotate(this.heading + Math.PI / 2);
         this.p5.triangle(
-              0, -15,
-             12,  15,
-            -12,  15
+             0, -10,
+             7,  10,
+            -7,  10
         );
         this.p5.pop();
     }

@@ -1,0 +1,14 @@
+# move to the start position
+penUp();
+rotate(-90);
+moveFwd(-50);
+penDown();
+
+for (var i = 3; i <= 8; i = i + 1) {
+    for (var j = 0; j < i; j = j + 1) {
+        moveFwd(100);
+        rotate(360 / i);
+    }
+}
+
+hideTurtle();
