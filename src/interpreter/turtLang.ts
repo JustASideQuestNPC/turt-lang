@@ -7,77 +7,38 @@ import Scanner from "./scanner.js";
 let interpreter: Interpreter;
 
 namespace TurtLang {
+
     export function init(turtle: Turtle) {
         interpreter = new Interpreter(turtle);
     }
 
+    /**
+     * (Attempts to) compile some source code.
+     * @return Whether the code was successfully compiled.
+     */
     // technically Turt isn't compiled, but this is still the best name
-    export function compile(source: string) {
+    export function compile(source: string): boolean {
         const scanner = new Scanner(source);
         const tokens = scanner.scan();
         const parser = new Parser(tokens);
-        try {
-            const statements = parser.parse();
-            interpreter.init(statements);
-        }
-        catch (error) {
-            // this will catch any turt-related error (ParseError, RuntimeError, etc.)
-            if (error instanceof TurtError) {
-                console.error(error.message);
-            }
-            // throw anything we don't expect
-            else {
-                throw error;
-            }
-        }
+
+        const statements = parser.parse();
+        if (parser.parseFailed) { return false; }
+
+        interpreter.init(statements);
+        return true;
     }
 
     export function step() {
-        try {
-            interpreter.run();
-        }
-        catch (error) {
-            // this will catch any turt-related error (ParseError, RuntimeError, etc.)
-            if (error instanceof TurtError) {
-                console.error(error.message);
-            }
-            // throw anything we don't expect
-            else {
-                throw error;
-            }
-        }
+        interpreter.run();
     }
 
     export function run() {
-        try {
-            interpreter.run();
-        }
-        catch (error) {
-            // this will catch any turt-related error (ParseError, RuntimeError, etc.)
-            if (error instanceof TurtError) {
-                console.error(error.message);
-            }
-            // throw anything we don't expect
-            else {
-                throw error;
-            }
-        }
+        interpreter.run();
     }
 
     export function runUntilGlide() {
-        try {
-            interpreter.runUntilGlide();
-        }
-        catch (error) {
-            // this will catch any turt-related error (ParseError, RuntimeError, etc.)
-            if (error instanceof TurtError) {
-                console.error(error.message);
-            }
-            // throw anything we don't expect
-            else {
-                throw error;
-            }
-        }
+        interpreter.runUntilGlide();
     }
 
     export function finished(): boolean {

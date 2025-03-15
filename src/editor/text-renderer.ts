@@ -41,6 +41,8 @@ export default class TextRenderer {
     }
 
     render(scrollLine: number) {
+        if (!this.lines) { return; }
+
         this.sketch.push();
 
         this.sketch.textFont("monospace", EDITOR_CONFIG.TEXT_SIZE);
@@ -72,6 +74,7 @@ export default class TextRenderer {
     }
 
     numLines(): number {
-        return this.lines.length;
+        if (this.lines) { return this.lines.length }
+        return 0;
     }
 }

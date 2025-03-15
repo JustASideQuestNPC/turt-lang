@@ -61,6 +61,8 @@ export default class Interpreter implements Expr.ExprVisitor<LiteralTypeUnion>,
 
     /** Runs a single statement. */
     step() {
+        if (this.finished || this.hadError) { return; }
+        
         try {
             this.execute(this.statements[this.index++]);
             this.finished_ = (this.index >= this.statements.length);

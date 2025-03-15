@@ -12,7 +12,7 @@ function reportError(token: Token, message: string): TParseError {
         message = `[TurtLang] ParseError (line ${token.line} at end): ${message}`;
     }
     else {
-        message = `[TurtLang] ParseError (line ${token.line} at '${token.lexeme}'): ${message}')`;
+        message = `[TurtLang] ParseError (line ${token.line} at '${token.lexeme}'): ${message}'`;
     }
     console.error(message);
     return new TParseError(message);
@@ -24,6 +24,9 @@ function reportError(token: Token, message: string): TParseError {
 export default class Parser {
     private tokens: Token[];
     private current: number = 0;
+
+    private parseFailed_: boolean = false;
+    get parseFailed() { return this.parseFailed_; }
 
     constructor(tokens: Token[]) {
         this.tokens = tokens;
@@ -333,6 +336,7 @@ export default class Parser {
         catch (error) {
             if (error instanceof TParseError) {
                 this.synchronize();
+                this.parseFailed_ = true;
                 return null;
             }
             // unexpected errors should still be thrown
