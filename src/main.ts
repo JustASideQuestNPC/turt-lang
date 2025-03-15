@@ -11,8 +11,6 @@ import Turtle from "./turtle.js";
 // TODO: make this actually work lmao
 const TURTLE_SPEED = 400; // set to 0 for infinite
 
-let programState: "turtle"|"editor";
-
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
 
@@ -62,11 +60,10 @@ const sketch = (p5: p5) => {
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
             if (TurtLang.loaded()) {
+                // this is async so it'll keep running in the background forever
                 TurtLang.run();
             }
         };
-
-        programState = "turtle";
     };
 
     p5.draw = () => {
