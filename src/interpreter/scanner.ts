@@ -172,7 +172,7 @@ export default class Scanner {
         return /^\d+$/.test(char);
     }
     private isAlpha(char: string): boolean {
-        return /[a-zA-Z]/.test(char);
+        return /[a-zA-Z]|_/.test(char);
     }
     private isAlphaNumeric(char: string): boolean {
         return this.isAlpha(char) || this.isDigit(char);
