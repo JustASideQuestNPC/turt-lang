@@ -49,6 +49,8 @@ export default class Turtle {
     private currentColor: p5.Color;
 
     private p5: p5;
+    parentInterpreter: Interpreter;
+    
     private glideSpeed: number;
     private gliding_: boolean;
     private glidePos: p5.Vector;
@@ -56,26 +58,36 @@ export default class Turtle {
     private currentShape: ShapeUnion;
     private drawingPolygon: boolean;
 
-    parentInterpreter: Interpreter;
-
     constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
         this.glideSpeed = glideSpeed;
         this.glidePos = this.p5.createVector();
-        this.reset();
+        this.resetAll();
     }
 
-    reset() {
+    resetAll() {
+        this.resetPosition();
+        this.resetPen();
+        this.resetDrawnShapes();
+    }
+
+    resetPosition() {
         this.position = this.p5.createVector(this.p5.width / 2, this.p5.height / 2);
         this.heading = -Math.PI / 2;
-        this.drawing = true;
         this.hideSprite = false;
         this.gliding_ = false;
-        this.currentColor = this.p5.color(0);
-        this.drawnShapes = [];
+    }
+
+    resetDrawnShapes() {
         this.currentShape = null;
+        this.drawnShapes = [];
+    }
+
+    resetPen() {
+        this.currentColor = this.p5.color(0);
         this.lineThickness = 2;
         this.drawingPolygon = false;
+        this.drawing = true;
     }
 
     /**

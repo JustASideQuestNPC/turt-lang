@@ -2,9 +2,11 @@ import Turtle from "../turtle.js";
 import Interpreter from "./interpreter.js";
 import Parser from "./parser.js";
 import Scanner from "./scanner.js";
+import { StmtBase } from "./statements.js";
 
 let interpreter: Interpreter;
-let codeLoaded: boolean = false;
+let statements: StmtBase[];
+let codeLoaded: boolean = true;
 
 namespace TurtLang {
     export function loaded() { return codeLoaded; }
@@ -24,15 +26,15 @@ namespace TurtLang {
         const tokens = scanner.scan();
         const parser = new Parser(tokens);
 
-        const statements = parser.parse();
+        statements = parser.parse();
         if (parser.parseFailed) { return false; }
 
-        interpreter.init(statements);
         codeLoaded = true;
         return true;
     }
 
     export async function run() {
+        interpreter.init(statements);
         await interpreter.run();
     }
 

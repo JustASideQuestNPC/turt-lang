@@ -9,7 +9,7 @@ import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
 
 // TODO: make this actually work lmao
-const TURTLE_SPEED = 400; // set to 0 for infinite
+const TURTLE_SPEED = 500; // set to 0 for infinite
 
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
@@ -59,7 +59,7 @@ const sketch = (p5: p5) => {
 
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
-            if (TurtLang.loaded()) {
+            if (TurtLang.loaded() && TurtLang.finished()) {
                 // this is async so it'll keep running in the background forever
                 TurtLang.run();
             }
@@ -68,7 +68,6 @@ const sketch = (p5: p5) => {
 
     p5.draw = () => {
         if (turtle.gliding) {
-            console.log("updating glide");
             turtle.updateGlide();
         }
 

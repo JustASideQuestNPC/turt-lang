@@ -1,8 +1,6 @@
 # move to the start position
-penUp();
 rotate(-90);
-moveFwd(-50);
-penDown();
+setPos(screenWidth / 2 + 50, screenHeight / 2);
 
 for (var i = 3; i <= 8; i = i + 1) {
     for (var j = 0; j < i; j = j + 1) {

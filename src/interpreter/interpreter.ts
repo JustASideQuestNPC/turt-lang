@@ -9,6 +9,7 @@ import turtStdLib from "./libraries/standard.js";
 import TurtArray from "./array.js";
 import Turtle from "../turtle.js";
 import turtDrawLib from "./libraries/draw.js";
+import SKETCH_CONFIG from "../../config/sketchConfig.js";
 
 /**
  * Dummy "error" used for returning from a function.
@@ -44,6 +45,8 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     constructor(turtle: Turtle) {
         this.turtle = turtle;
         turtle.parentInterpreter = this;
+        // starting with this true makes things easier elsewhere
+        this.finished_ = true;
     }
 
     init(statements: Stmt.StmtBase[]) {
@@ -58,7 +61,11 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         importLibrary(this, turtStdLib);
         importLibrary(this, turtDrawLib);
 
-        this.turtle.reset();
+        // globals can't be defined as part of libraries
+        this.globals.define("screenWidth", SKETCH_CONFIG.SCREEN_WIDTH);
+        this.globals.define("screenHeight", SKETCH_CONFIG.SCREEN_HEIGHT);
+
+        this.turtle.resetAll();
     }
 
     /** Runs all statements. */

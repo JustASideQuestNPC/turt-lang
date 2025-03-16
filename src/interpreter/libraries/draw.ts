@@ -11,8 +11,23 @@ function toDegrees(angle: number) { return angle * (180 / Math.PI); }
  */
 const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     // resets everything
-    "reset": (_, turtle) => {
-        turtle.reset();
+    "resetAll": (_, turtle) => {
+        turtle.resetAll();
+    },
+
+    // resets the turtle's position and angle
+    "goHome": (_, turtle) => {
+        turtle.resetPosition();
+    },
+
+    // clears everything that has been drawn so far
+    "clearCanvas": (_, turtle) => {
+        turtle.resetDrawnShapes();
+    },
+
+    // resets color and line thickness
+    "resetPen": (_, turtle) => {
+        turtle.resetPen();
     },
 
     // returns the turtle's x position
