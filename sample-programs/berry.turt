@@ -1,3 +1,5 @@
+setMoveSpeed(150);
+
 var PIXEL_SIZE = 25;
 var PIXELS = [
   "     ##   ",
@@ -62,9 +64,9 @@ function square() {
 }
 
 setAngle(90);
+setPos(PIXEL_SIZE, PIXEL_SIZE);
 
 for (var y = 0; y < length(PIXELS); y = y + 1) {
-  setPos(PIXEL_SIZE, PIXEL_SIZE * (y + 1));
   var row = PIXELS[y];
   for (var x = 0; x < length(row); x = x + 1) {
     if (row[x] != " ") {
@@ -74,6 +76,17 @@ for (var y = 0; y < length(PIXELS); y = y + 1) {
     penUp();
     moveFwd(PIXEL_SIZE);
     penDown();
+    setMoveSpeed(getMoveSpeed() + 15);
   }
+
+  # i could just teleport, but this is cooler
+  penUp();
+  rotate(90);
+  moveFwd(PIXEL_SIZE);
+  rotate(90);
+  moveFwd(length(row) * PIXEL_SIZE);
+  rotate(180);
+  penDown();
 }
+
 hideTurtle();

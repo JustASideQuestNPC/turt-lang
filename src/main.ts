@@ -8,8 +8,7 @@ import addCanvasListeners from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
 
-// TODO: make this actually work lmao
-const TURTLE_SPEED = 500; // set to 0 for infinite
+const DEFAULT_TURTLE_SPEED = 250; // set to 0 for infinite
 
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
@@ -45,7 +44,7 @@ const sketch = (p5: p5) => {
         });
 
         // initialize everything
-        turtle = new Turtle(p5, TURTLE_SPEED);
+        turtle = new Turtle(p5, DEFAULT_TURTLE_SPEED);
         TurtLang.init(turtle);
 
         codeFileInput = <HTMLInputElement>document.getElementById("codeFile");

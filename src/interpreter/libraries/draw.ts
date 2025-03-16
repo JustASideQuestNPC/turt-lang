@@ -10,6 +10,16 @@ function toDegrees(angle: number) { return angle * (180 / Math.PI); }
  * The standard library contains functions for printing and drawing.
  */
 const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
+    // returns the movement speed in pixels per second. 0 or below moves instantly
+    "getMoveSpeed": (_, turtle) => {
+        return turtle.glideSpeed;
+    },
+
+    // sets the movement speed in pixels per second. set to 0 or negative to move instantly
+    "setMoveSpeed": (_, turtle, moveSpeed: number) => {
+        turtle.glideSpeed = moveSpeed;
+    },
+
     // resets everything
     "resetAll": (_, turtle) => {
         turtle.resetAll();

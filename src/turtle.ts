@@ -51,7 +51,8 @@ export default class Turtle {
     private p5: p5;
     parentInterpreter: Interpreter;
     
-    private glideSpeed: number;
+    glideSpeed: number;
+    private initialGlideSpeed: number;
     private gliding_: boolean;
     private glidePos: p5.Vector;
     private drawnShapes: ShapeUnion[];
@@ -60,7 +61,8 @@ export default class Turtle {
 
     constructor(p5: p5, glideSpeed: number) {
         this.p5 = p5;
-        this.glideSpeed = glideSpeed;
+        this.initialGlideSpeed = glideSpeed;
+        this.position = this.p5.createVector();
         this.glidePos = this.p5.createVector();
         this.resetAll();
     }
@@ -69,10 +71,11 @@ export default class Turtle {
         this.resetPosition();
         this.resetPen();
         this.resetDrawnShapes();
+        this.glideSpeed = this.initialGlideSpeed;
     }
 
     resetPosition() {
-        this.position = this.p5.createVector(this.p5.width / 2, this.p5.height / 2);
+        this.position.set(this.p5.width / 2, this.p5.height / 2);
         this.heading = -Math.PI / 2;
         this.hideSprite = false;
         this.gliding_ = false;
