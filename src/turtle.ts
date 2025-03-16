@@ -103,11 +103,13 @@ export default class Turtle {
                 this.position.set(this.glidePos);
                 
                 if (this.currentShape) {
-                    switch (this.currentShape.type) {
+                    const shape = this.currentShape;
+                    switch (shape.type) {
                         case "line":
-                            this.currentShape.end.set(this.position);
+                            shape.end.set(this.position);
                             break;
                         case "polygon":
+                            shape.vertices[shape.vertices.length - 1].set(this.position);
                             break;
                     }
 
@@ -127,11 +129,13 @@ export default class Turtle {
                 );
                 // update shape positions for smooth drawing
                 if (this.currentShape) {
-                    switch (this.currentShape.type) {
+                    const shape = this.currentShape;
+                    switch (shape.type) {
                         case "line":
-                            this.currentShape.end.set(this.position);
+                            shape.end.set(this.position);
                             break;
                         case "polygon":
+                            shape.vertices[shape.vertices.length - 1].set(this.position);
                             break;
                     }
                 }
@@ -230,13 +234,12 @@ export default class Turtle {
             this.drawnShapes.push(this.currentShape);
         }
 
-        // place the first vertex at our position
+        // place the first vertex at our position and add a fake vertex for smooth polygon drawing
         this.currentShape = {
             type: "polygon",
             color: this.currentColor,
-            vertices: []
+            vertices: [this.position.copy(), this.position.copy()]
         };
-        this.dropVertex();
 
         this.drawingPolygon = true;
     }
@@ -256,6 +259,7 @@ export default class Turtle {
         if (!this.drawingPolygon) { return; }
         
         if (this.currentShape && this.currentShape.type === "polygon") {
+            this.currentShape.vertices[this.currentShape.vertices.length - 1].set(this.position);
             this.currentShape.vertices.push(this.position.copy());
         }
         else {

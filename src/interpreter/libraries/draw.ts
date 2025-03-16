@@ -100,6 +100,11 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
         await turtle.setColor(r, g, b);
     },
 
+    // sets the line thickness
+    "lineThickness": (_, turtle, value: number) => {
+        turtle.lineThickness = value;
+    },
+
     // begins drawing a polygon
     "beginPoly": async (_, turtle) => {
         await turtle.beginPoly();

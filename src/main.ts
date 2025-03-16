@@ -17,7 +17,6 @@ let codeFileInput: HTMLInputElement;
 async function loadCodeFile(file: File) {
     // lock everything down until we're finished processing
     codeFileInput.disabled = true;
-
     console.log(`Name: '${file.name}'\nType: ${file.type}\nSize: ${file.size}`);
     console.log("Reading file...");
     const text = await file.text();
@@ -28,6 +27,7 @@ async function loadCodeFile(file: File) {
     }
 
     codeFileInput.disabled = false;
+    turtle.resetAll();
 }
 
 const sketch = (p5: p5) => {
@@ -36,7 +36,7 @@ const sketch = (p5: p5) => {
         canvas.parent("sketchContainer");
         addCanvasListeners({
             canvas: canvas,
-            disableContextMenu: true,
+            disableContextMenu: false,
             keyPressed: keyPressed,
             keyReleased: keyReleased,
             mousePressed: mousePressed,
@@ -60,7 +60,7 @@ const sketch = (p5: p5) => {
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
             if (TurtLang.loaded() && TurtLang.finished()) {
-                // this is async so it'll keep running in the background forever
+                // this is async so it'll keep running in the background until it's done
                 TurtLang.run();
             }
         };
