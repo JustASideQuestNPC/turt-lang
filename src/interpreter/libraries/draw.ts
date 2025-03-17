@@ -1,15 +1,17 @@
 /**
  * The drawing library contains functions for controlling the onscreen turtle.
  */
-import { LibDataTypeUnion } from "../importer.js";
+import { LibFunction, TurtLibrary } from "../importer.js";
+import { LiteralTypeUnion } from "../scanner.js";
+
 
 function toRadians(angle: number) { return angle * (Math.PI / 180); }
 function toDegrees(angle: number) { return angle * (180 / Math.PI); }
 
 /**
- * The standard library contains functions for printing and drawing.
+ * Functions for controlling the turtle.
  */
-const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
+const functions: {[key: string]: LibFunction} = {
     // returns the movement speed in pixels per second. 0 or below moves instantly
     "getMoveSpeed": (_, turtle) => {
         return turtle.glideSpeed;
@@ -105,9 +107,19 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
         return turtle.drawing;
     },
 
-    // sets the draw color
-    "setColor": async (_, turtle, r: number, g: number, b: number) => {
-        await turtle.setColor(r, g, b);
+    // sets the draw color using an index in the base color array
+    "setColor": async (_, turtle, c: number) => {
+        await turtle.setColor(c);
+    },
+
+    // sets the draw color using 3 RGBA numbers
+    "setColorRgb": async (_, turtle, r: number, g: number, b: number) => {
+        await turtle.setColorRgb(r, g, b);
+    },
+
+    // sets the draw color using a css color string
+    "setColorCss": async (_, turtle, c: number) => {
+        await turtle.setColor(c);
     },
 
     // sets the line thickness
@@ -131,4 +143,26 @@ const turtDrawLib: {[key: string]: LibDataTypeUnion} = {
     },
 };
 
-export default turtDrawLib;
+/**
+ * Library variables; mainly color names.
+ */
+const variables: {[key: string]: LiteralTypeUnion} = {
+    COLOR_BLACK: 0,
+    COLOR_GRAY: 1,
+    COLOR_WHITE: 2,
+    COLOR_RED: 3,
+    COLOR_ORANGE: 4,
+    COLOR_YELLOW: 5,
+    COLOR_GREEN: 6,
+    COLOR_CYAN: 7,
+    COLOR_SKY: 8,
+    COLOR_BLUE: 9,
+    COLOR_PURPLE: 10,
+    COLOR_PINK: 11
+};
+
+const lib: TurtLibrary = {
+    functions: functions,
+    variables: variables
+}
+export default lib;

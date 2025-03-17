@@ -1,12 +1,12 @@
 import TurtArray from "../array.js";
 import { TRuntimeError } from "../common.js";
-import { LibDataTypeUnion } from "../importer.js";
+import { LibFunction, TurtLibrary } from "../importer.js";
 import { LiteralTypeUnion } from "../scanner.js";
 
 /**
- * The standard library contains functions for printing and manipulating arrays and strings.
+ * Functions for printing, math, and manipulating arrays.
  */
-const turtStdLib: {[key: string]: LibDataTypeUnion} = {
+const functions: {[key: string]: LibFunction} = {
     // prints a message to the console
     "print": (i, t, message) => {
         console.log(`${message}`);
@@ -58,4 +58,13 @@ const turtStdLib: {[key: string]: LibDataTypeUnion} = {
     }
 };
 
-export default turtStdLib;
+/**
+ * Library variables; currently empty.
+ */
+const variables: {[key: string]: LiteralTypeUnion} = {};
+
+const lib: TurtLibrary = {
+    functions: functions,
+    variables: variables
+}
+export default lib;

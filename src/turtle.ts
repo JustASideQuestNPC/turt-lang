@@ -3,6 +3,22 @@
 import { TRuntimeError } from "./interpreter/common.js";
 import Interpreter from "./interpreter/interpreter.js";
 
+/** Array of colors (this allows colors to be cycled through like integers). */
+const BASE_COLORS = [
+    "#000000",
+    "#616178",
+    "#ffffff",
+    "#f54242",
+    "#f57e42",
+    "#f5dd42",
+    "#78f542",
+    "#42f59c",
+    "#42d1f5",
+    "#4245f5",
+    "#aa42f5",
+    "#f542dd",
+];
+
 // object types for everything drawn onscreen
 interface Line {
     type: "line", // used for distinguishing between shape types
@@ -207,16 +223,18 @@ export default class Turtle {
         }
     }
 
-    async setColor(r: number|string, g?: number, b?: number, a?: number) {
-        if (this.drawingPolygon) { return; }
+    async setColor(c: number) {
+        const i = ((c % BASE_COLORS.length) + BASE_COLORS.length) % BASE_COLORS.length;
+        this.currentColor = this.p5.color(BASE_COLORS[i]);
+    }
 
-        // keeps typescript happy
-        if (typeof r === "string") {
-            this.currentColor = this.p5.color(r);
-        }
-        else {
-            this.currentColor = this.p5.color(r, g, b, a);
-        }
+    async setColorRgb(r: number, g: number, b: number) {
+        if (this.drawingPolygon) { return; }
+        this.currentColor = this.p5.color(r, g, b);
+    }
+
+    async setColorCss(str: string) {
+        this.currentColor = this.p5.color(str);
     }
 
     async penUp() {

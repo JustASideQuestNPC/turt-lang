@@ -1,15 +1,5 @@
-setColor(255, 0, 0);
-beginPoly();
-for (var i = 0; i < 4; i = i + 1) {
-    moveFwd(150);
-    dropVertex();
-    rotate(90);
-}
-endPoly();
-
-lineThickness(4);
-setColor(0, 0, 0);
-for (var i = 0; i < 4; i = i + 1) {
-    moveFwd(150);
-    rotate(90);
+setColor(COLOR_BLUE);
+for (var i = 0; i < 12; i = i + 1) {
+    moveFwd(100);
+    rotate(30);
 }
