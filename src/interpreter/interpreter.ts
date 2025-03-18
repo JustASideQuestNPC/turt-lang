@@ -1,7 +1,7 @@
 import { LiteralTypeUnion, Token, TokenType } from "./scanner.js";
 import * as Expr from "./expressions.js";
 import * as Stmt from "./statements.js";
-import { TRangeError, TRuntimeError, TTypeError } from "./common.js";
+import { TRangeError, TRuntimeError, TTypeError, TInfiniteLoopError } from "./common.js";
 import Environment from "./environment.js";
 import { TurtStdFunction, TurtUserFunction } from "./callable.js";
 import importLibrary from "./importer.js";
@@ -9,7 +9,7 @@ import turtStdLib from "./libraries/standard.js";
 import TurtArray from "./array.js";
 import Turtle from "../turtle.js";
 import turtDrawLib from "./libraries/draw.js";
-import SKETCH_CONFIG from "../../config/sketchConfig.js";
+import CONFIG from "../../config/_CONFIG.js";
 
 /**
  * Dummy "error" used for returning from a function.
@@ -62,8 +62,8 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         importLibrary(this, turtDrawLib);
 
         // globals can't be defined as part of libraries
-        this.globals.define("screenWidth", SKETCH_CONFIG.SCREEN_WIDTH);
-        this.globals.define("screenHeight", SKETCH_CONFIG.SCREEN_HEIGHT);
+        this.globals.define("screenWidth", CONFIG.SCREEN_WIDTH);
+        this.globals.define("screenHeight", CONFIG.SCREEN_HEIGHT);
 
         this.turtle.resetAll();
     }
@@ -332,8 +332,13 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     }
 
     async visitWhileStmt(stmt: Stmt.WhileStmt) {
+        let numIterations = 0;
         while(isTruthy(await this.evaluate(stmt.condition))) {
             await this.execute(stmt.body);
+            
+            if (++numIterations >= CONFIG.MAX_LOOP_ITERATIONS) {
+                throw new TInfiniteLoopError("Maximum number of loop iterations (250) exceeded.");
+            }
         }
     }
 

@@ -47,3 +47,13 @@ export class TTypeError extends TurtError {
         this.name = "Turt.TypeError";
     }
 }
+
+/**
+ * Represents an error caused when a while loop is considered infinite.
+ */
+export class TInfiniteLoopError extends TurtError {
+    constructor(message: string) {
+        super(message);
+        this.name = "Turt.InfiniteLoopError";
+    }
+}

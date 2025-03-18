@@ -3,12 +3,10 @@
  * TOTALLY PERFECT library with NO FLAWS WHATSOEVER. On an entirely unrelated note, I would really
  * like to try whatever the p5js devs have been smoking.
  */
-import SKETCH_CONFIG from "../config/sketchConfig.js";
+import CONFIG from "../config/_CONFIG.js";
 import addCanvasListeners from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
-
-const DEFAULT_TURTLE_SPEED = 250; // set to 0 for infinite
 
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
@@ -31,7 +29,7 @@ async function loadCodeFile(file: File) {
 
 const sketch = (p5: p5) => {
     p5.setup = () => {
-        const canvas = p5.createCanvas(SKETCH_CONFIG.SCREEN_WIDTH, SKETCH_CONFIG.SCREEN_HEIGHT);
+        const canvas = p5.createCanvas(CONFIG.SCREEN_WIDTH, CONFIG.SCREEN_HEIGHT);
         canvas.parent("sketchContainer");
         addCanvasListeners({
             canvas: canvas,
@@ -44,7 +42,7 @@ const sketch = (p5: p5) => {
         });
 
         // initialize everything
-        turtle = new Turtle(p5, DEFAULT_TURTLE_SPEED);
+        turtle = new Turtle(p5, CONFIG.DEFAULT_TURTLE_SPEED);
         TurtLang.init(turtle);
 
         codeFileInput = <HTMLInputElement>document.getElementById("codeFile");
