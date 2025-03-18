@@ -2,14 +2,10 @@
  * Configs for the sketch environment.
  */
 const CONFIG = {
-    /**
-     * Width of the canvas, in pixels.
-     */
     SCREEN_WIDTH: 1280,
-    /**
-     * Height of the canvas, in pixels.
-     */
     SCREEN_HEIGHT: 720,
+    SIDEBAR_WIDTH: 275,
+    SIDEBAR_TEXT_SIZE: 20,
     /**
      * If true, the menu that normally appears when you right click is disabled when clicking the
      * sketch. This does *not* disable it for the rest of the webpage.

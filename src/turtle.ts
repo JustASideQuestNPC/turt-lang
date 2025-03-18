@@ -62,7 +62,8 @@ export default class Turtle {
     drawing: boolean;
     hideSprite: boolean;
     lineThickness: number;
-    private currentColor: p5.Color;
+    currentColor: p5.Color;
+    private startPos: p5.Vector;
 
     private p5: p5;
     parentInterpreter: Interpreter;
@@ -75,9 +76,10 @@ export default class Turtle {
     private currentShape: ShapeUnion;
     private drawingPolygon: boolean;
 
-    constructor(p5: p5, glideSpeed: number) {
+    constructor(p5: p5, glideSpeed: number, startX: number, startY: number) {
         this.p5 = p5;
         this.initialGlideSpeed = glideSpeed;
+        this.startPos = this.p5.createVector(startX, startY);
         this.position = this.p5.createVector();
         this.glidePos = this.p5.createVector();
         this.resetAll();
@@ -91,7 +93,7 @@ export default class Turtle {
     }
 
     resetPosition() {
-        this.position.set(this.p5.width / 2, this.p5.height / 2);
+        this.position.set(this.startPos);
         this.heading = -Math.PI / 2;
         this.hideSprite = false;
         this.gliding = false;
