@@ -126,19 +126,21 @@ const sketch = (p5: p5) => {
         p5.noStroke();
 
         // statement list
-        const statements = TurtLang.getStatementList();
-        let y = lineHeight * 5;
-        for (let i = 0; i < statements.length; ++i) {
-            if (i === TurtLang.getStatementIndex()) {
-                p5.fill("#0000ff");
-            }
-            else {
-                p5.fill("#000000");
-            }
+        // const block = TurtLang.currentBlock();
+        // if (block !== undefined) {
+        //     let y = lineHeight * 5;
+        //     for (let i = 0; i < block[0].length; ++i) {
+        //         if (i === block[1]) {
+        //             p5.fill("#0000ff");
+        //         }
+        //         else {
+        //             p5.fill("#000000");
+        //         }
 
-            p5.text(statements[i].displayName, sidebarPos + 10, y);
-            y += lineHeight;
-        }
+        //         p5.text(block[0][i].displayName, sidebarPos + 10, y);
+        //         y += lineHeight;
+        //     }
+        // }
     };
 
     function keyPressed(event: KeyboardEvent) {}

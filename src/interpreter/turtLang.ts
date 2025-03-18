@@ -53,12 +53,8 @@ namespace TurtLang {
         interpreter.kill();
     }
 
-    export function getStatementList(): StmtBase[] {
-        return interpreter.displayStatements;
-    }
-
-    export function getStatementIndex(): number {
-        return interpreter.displayIndex;
+    export function currentBlock(): [StmtBase[], number] {
+        return interpreter.currentDisplayBlock;
     }
 }
 export default TurtLang;

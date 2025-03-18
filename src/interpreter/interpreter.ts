@@ -33,7 +33,7 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     private index: number;
 
     // for the sidebar
-    private displayBlocks: [Stmt.StmtBase[], number][];
+    private displayBlocks: [Stmt.StmtBase[], number][] = [];
 
     private hadError_: boolean;
     get hadError() { return this.hadError_; }
@@ -379,11 +379,8 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         await stmt.accept(this);
     }
 
-    get displayStatements() {
-        return this.displayBlocks[this.displayBlocks.length - 1][0];
-    }
-    get displayIndex() {
-        return this.displayBlocks[this.displayBlocks.length - 1][1];
+    get currentDisplayBlock() {
+        return this.displayBlocks[this.displayBlocks.length - 1];
     }
 }
 
