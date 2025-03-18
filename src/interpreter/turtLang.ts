@@ -45,5 +45,9 @@ namespace TurtLang {
     export function turtleGliding(): boolean {
         return interpreter.turtle.gliding;
     }
+
+    export function killExecution() {
+        interpreter.kill();
+    }
 }
 export default TurtLang;

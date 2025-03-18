@@ -42,6 +42,8 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     turtle: Turtle;
     resumeGlide: () => void; // will be called by the turtle
 
+    private killExecution: boolean;;
+
     constructor(turtle: Turtle) {
         this.turtle = turtle;
         turtle.parentInterpreter = this;
@@ -56,6 +58,7 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         this.index = 0;
         this.hadError_ = false;
         this.finished_ = false;
+        this.killExecution = false;
 
         // load standard libraries
         importLibrary(this, turtStdLib);
@@ -85,6 +88,12 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         }
 
         this.finished_ = !this.hadError;
+    }
+
+    kill() {
+        this.killExecution = true;
+        this.turtle.gliding = false;
+        this.finished_ = true;
     }
 
     async visitArrayExpr(expr: Expr.ArrayExpr): Promise<LiteralTypeUnion> {
@@ -343,6 +352,9 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     }
 
     async execute(stmt: Stmt.StmtBase) {
+        // immediately stop
+        if (this.killExecution) { return; }
+
         if (this.turtle.gliding) {
             // console.log("pausing...");
             await new Promise((resolve) => {

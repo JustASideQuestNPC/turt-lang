@@ -68,8 +68,8 @@ export default class Turtle {
     parentInterpreter: Interpreter;
     
     glideSpeed: number;
+    gliding: boolean;
     private initialGlideSpeed: number;
-    private gliding_: boolean;
     private glidePos: p5.Vector;
     private drawnShapes: ShapeUnion[];
     private currentShape: ShapeUnion;
@@ -94,7 +94,7 @@ export default class Turtle {
         this.position.set(this.p5.width / 2, this.p5.height / 2);
         this.heading = -Math.PI / 2;
         this.hideSprite = false;
-        this.gliding_ = false;
+        this.gliding = false;
     }
 
     resetDrawnShapes() {
@@ -137,7 +137,7 @@ export default class Turtle {
                     }
                 }
 
-                this.gliding_ = false;
+                this.gliding = false;
                 this.parentInterpreter.resumeGlide();
             }
             else {
@@ -210,7 +210,7 @@ export default class Turtle {
             this.position.set(this.glidePos);
         }
         else {
-            this.gliding_ = true;
+            this.gliding = true;
             if (this.drawing && !this.drawingPolygon) {
                 this.currentShape = {
                     type: "line",
@@ -287,6 +287,4 @@ export default class Turtle {
             throw new TRuntimeError("Cannot drop vertices in a non-polygon.");
         }
     }
-
-    get gliding() { return this.gliding_; }
 }

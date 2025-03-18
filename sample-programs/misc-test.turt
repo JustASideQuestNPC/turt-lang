@@ -1,0 +1,6 @@
+# loop protector test
+var numIterations = 0;
+while (numIterations < 300) {
+    rotate(1);
+    numIterations = numIterations + 1;
+}

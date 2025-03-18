@@ -10,6 +10,7 @@ import Turtle from "./turtle.js";
 
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
+let running: boolean;
 
 async function loadCodeFile(file: File) {
     // lock everything down until we're finished processing
@@ -56,9 +57,16 @@ const sketch = (p5: p5) => {
 
         const runButton = document.getElementById("runCodeLine");
         runButton.onclick = () => {
-            if (TurtLang.loaded() && TurtLang.finished()) {
-                // this is async so it'll keep running in the background until it's done
-                TurtLang.run();
+            if (TurtLang.loaded()) {
+                if (TurtLang.finished()) {
+                    // this is async so it'll keep running in the background until it's done
+                    TurtLang.run();
+                    runButton.innerText = "Stop";
+                }
+                else {
+                    TurtLang.killExecution();
+                    runButton.innerText = "Run";
+                }
             }
         };
     };

@@ -27,25 +27,25 @@ var PIXELS = [
 # 'R': red
 function findColor(char) {
   if (char == "#") {
-    setColor(0, 0, 0);
+    setColorRgb(0, 0, 0);
   }
   else if (char == "g") {
-    setColor(106, 190, 48);
+    setColorRgb(106, 190, 48);
   }
   else if (char == "G") {
-    setColor(55, 148, 110);
+    setColorRgb(55, 148, 110);
   }
   else if (char == "p") {
-    setColor(138, 15, 54);
+    setColorRgb(138, 15, 54);
   }
   else if (char == "P") {
-    setColor(73, 22, 117);
+    setColorRgb(73, 22, 117);
   }
   else if (char == "r") {
-    setColor(255, 95, 66);
+    setColorRgb(255, 95, 66);
   }
   else if (char == "R") {
-    setColor(222, 42, 42);
+    setColorRgb(222, 42, 42);
   }
   else {
     print("Could not find color for character '" + char + "'");

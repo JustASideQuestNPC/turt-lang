@@ -22,6 +22,6 @@ const CONFIG = {
     /**
      * How many loop iterations are allowed before an error is thrown.
      */
-    MAX_LOOP_ITERATIONS: 250
+    MAX_LOOP_ITERATIONS: 1000
 };
 export default CONFIG;
