@@ -29,6 +29,9 @@ namespace TurtLang {
         statements = parser.parse();
         if (parser.parseFailed) { return false; }
 
+        // this will get called again when we start running, but doing it here lets the statements
+        // appear in the sidebar right away
+        interpreter.init(statements);
         codeLoaded = true;
         return true;
     }
@@ -48,6 +51,14 @@ namespace TurtLang {
 
     export function killExecution() {
         interpreter.kill();
+    }
+
+    export function getStatementList(): StmtBase[] {
+        return interpreter.displayStatements;
+    }
+
+    export function getStatementIndex(): number {
+        return interpreter.displayIndex;
     }
 }
 export default TurtLang;

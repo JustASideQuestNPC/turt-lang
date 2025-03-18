@@ -78,6 +78,8 @@ const sketch = (p5: p5) => {
                 }
             }
         };
+
+
     };
 
     p5.draw = () => {
@@ -89,12 +91,11 @@ const sketch = (p5: p5) => {
         turtle.render();
 
         // sidebar divider
-        p5.noStroke();
         p5.fill("#ffffff");
-        p5.rect(sidebarPos, 0, CONFIG.SIDEBAR_WIDTH, p5.height)
         p5.strokeWeight(4);
         p5.stroke("#000000");
         p5.line(sidebarPos, 0, sidebarPos, p5.height);
+        p5.rect(sidebarPos, 2, CONFIG.SIDEBAR_WIDTH - 2, p5.height - 4);
 
         p5.textFont("monospace", CONFIG.SIDEBAR_TEXT_SIZE);
         p5.textAlign("left", "top");
@@ -107,7 +108,7 @@ const sketch = (p5: p5) => {
             `Heading: ${Math.floor(turtle.heading * 180 / Math.PI)}\n` +
             `Pen Down: ${turtle.drawing}\n` +
             `Color:`,
-            sidebarPos + 10, 5
+            sidebarPos + 10, 7
         );
 
         // do some funky stuff to get a css color
@@ -118,7 +119,26 @@ const sketch = (p5: p5) => {
         const b = Math.floor(p5.blue(turtleColor)).toString(16).padStart(2, "0");
 
         p5.fill(turtleColor);
-        p5.text(`#${r}${g}${b}`, sidebarPos + charWidth * 7 + 10, lineHeight * 3 + 5);
+        p5.text(`#${r}${g}${b}`, sidebarPos + charWidth * 7 + 10, lineHeight * 3 + 7);
+
+        p5.stroke("#000000");
+        p5.line(sidebarPos, lineHeight * 4.5, p5.width, lineHeight * 4.5);
+        p5.noStroke();
+
+        // statement list
+        const statements = TurtLang.getStatementList();
+        let y = lineHeight * 5;
+        for (let i = 0; i < statements.length; ++i) {
+            if (i === TurtLang.getStatementIndex()) {
+                p5.fill("#0000ff");
+            }
+            else {
+                p5.fill("#000000");
+            }
+
+            p5.text(statements[i].displayName, sidebarPos + 10, y);
+            y += lineHeight;
+        }
     };
 
     function keyPressed(event: KeyboardEvent) {}

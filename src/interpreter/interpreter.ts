@@ -32,6 +32,9 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     private statements: Stmt.StmtBase[];
     private index: number;
 
+    // for the sidebar
+    private displayBlocks: [Stmt.StmtBase[], number][];
+
     private hadError_: boolean;
     get hadError() { return this.hadError_; }
 
@@ -59,6 +62,9 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         this.hadError_ = false;
         this.finished_ = false;
         this.killExecution = false;
+
+        // for the sidebar
+        this.displayBlocks = [[statements.slice(), 0]]
 
         // load standard libraries
         importLibrary(this, turtStdLib);
@@ -289,16 +295,21 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     
     // this is public so functions can call it
     async executeBlock(statements: Stmt.StmtBase[], environment: Environment) {
+        // update the sidebar
+        this.displayBlocks.push([statements.slice(), 0]);
+
         const previous = this.environment;
         try {
             this.environment = environment;
             
-            for (const statement of statements) {
-                await this.execute(statement);
+            for (let i = 0; i < statements.length; ++i) {
+                this.displayBlocks[this.displayBlocks.length - 1][1] = i;
+                await this.execute(statements[i]);
             }
         }
         finally {
             this.environment = previous;
+            this.displayBlocks.pop();
         }
     }
 
@@ -366,6 +377,13 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         }
 
         await stmt.accept(this);
+    }
+
+    get displayStatements() {
+        return this.displayBlocks[this.displayBlocks.length - 1][0];
+    }
+    get displayIndex() {
+        return this.displayBlocks[this.displayBlocks.length - 1][1];
     }
 }
 

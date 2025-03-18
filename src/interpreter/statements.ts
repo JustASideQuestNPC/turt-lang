@@ -3,6 +3,7 @@ import { Token } from "./scanner";
 
 // base class for statements
 export abstract class StmtBase {
+    abstract displayName: string;
     abstract accept<T>(visitor: StmtVisitor<T>): T;
 }
 
@@ -18,6 +19,7 @@ export interface StmtVisitor<T> {
 }
 
 export class BlockStmt extends StmtBase {
+    displayName: string = "STMT_BLOCK"; 
     statements: StmtBase[];
     
     constructor(statements: StmtBase[]) {
@@ -31,6 +33,7 @@ export class BlockStmt extends StmtBase {
 }
 
 export class ExpressionStmt extends StmtBase {
+    displayName: string = "STMT_EXPRESSION"; 
     expression: ExprBase;
 
     constructor(expression: ExprBase) {
@@ -44,6 +47,7 @@ export class ExpressionStmt extends StmtBase {
 }
 
 export class FunctionStmt extends StmtBase {
+    displayName: string = "STMT_FUNCTION"; 
     name: Token;
     params: Token[];
     body: StmtBase[];
@@ -61,6 +65,7 @@ export class FunctionStmt extends StmtBase {
 }
 
 export class IfStmt extends StmtBase {
+    displayName: string = "STMT_IF"; 
     condition: ExprBase;
     thenBranch: StmtBase;
     elseBranch: StmtBase|null;
@@ -78,6 +83,7 @@ export class IfStmt extends StmtBase {
 }
 
 export class ReturnStmt extends StmtBase {
+    displayName: string = "STMT_RETURN"; 
     keyword: Token;
     value: ExprBase;
 
@@ -93,6 +99,7 @@ export class ReturnStmt extends StmtBase {
 }
 
 export class VarStmt extends StmtBase {
+    displayName: string = "STMT_VAR"; 
     name: Token;
     initializer: ExprBase;
 
@@ -108,6 +115,7 @@ export class VarStmt extends StmtBase {
 }
 
 export class WhileStmt extends StmtBase {
+    displayName: string = "STMT_WHILE"; 
     condition: ExprBase;
     body: StmtBase;
 
