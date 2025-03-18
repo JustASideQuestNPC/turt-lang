@@ -8,7 +8,7 @@ export default class TurtArray {
         this.items = items;
     }
 
-    index(i: number): LiteralTypeUnion {
+    get(i: number): LiteralTypeUnion {
         if (i < -this.items.length || i >= this.items.length) {
             throw new TRangeError("Array index out of range.");
         }

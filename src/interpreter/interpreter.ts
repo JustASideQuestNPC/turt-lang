@@ -225,7 +225,7 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
             }
             return indexee[index];
         }
-        return indexee.index(index);
+        return indexee.get(index);
     }
     
     async visitLiteralExpr(expr: Expr.LiteralExpr): Promise<LiteralTypeUnion> {

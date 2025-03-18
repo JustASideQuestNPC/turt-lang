@@ -13,9 +13,7 @@ function toDegrees(angle: number) { return angle * (180 / Math.PI); }
  */
 const functions: {[key: string]: LibFunction} = {
     // returns the movement speed in pixels per second. 0 or below moves instantly
-    "getMoveSpeed": (_, turtle) => {
-        return turtle.glideSpeed;
-    },
+    "getMoveSpeed": (_, turtle) => turtle.glideSpeed,
 
     // sets the movement speed in pixels per second. set to 0 or negative to move instantly
     "setMoveSpeed": (_, turtle, moveSpeed: number) => {
@@ -43,14 +41,10 @@ const functions: {[key: string]: LibFunction} = {
     },
 
     // returns the turtle's x position
-    "getX": (_, turtle) => {
-        return turtle.position.x;
-    },
+    "getX": (_, turtle) => turtle.position.x,
 
     // returns the turtle's y position
-    "getY": (_, turtle) => {
-        return turtle.position.y;
-    },
+    "getY": (_, turtle) => turtle.position.y,
 
     // sets the turtle's position
     "setPos": (_, turtle, x: number, y: number) => {
@@ -88,9 +82,7 @@ const functions: {[key: string]: LibFunction} = {
     },
 
     // returns whether the turtle is hidden
-    "isHidden": (_, turtle) => {
-        return turtle.hideSprite;
-    },
+    "isHidden": (_, turtle) => turtle.hideSprite,
 
     // disables drawing
     "penUp": async (_, turtle) => {
