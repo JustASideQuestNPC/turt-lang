@@ -5,7 +5,7 @@ const CONFIG = {
     SCREEN_WIDTH: 1280,
     SCREEN_HEIGHT: 720,
     SIDEBAR_WIDTH: 275,
-    SIDEBAR_TEXT_SIZE: 20,
+    SIDEBAR_TEXT_SIZE: 18,
     /**
      * If true, the menu that normally appears when you right click is disabled when clicking the
      * sketch. This does *not* disable it for the rest of the webpage.
@@ -18,6 +18,10 @@ const CONFIG = {
     /**
      * How many loop iterations are allowed before an error is thrown.
      */
-    MAX_LOOP_ITERATIONS: 1000
+    MAX_LOOP_ITERATIONS: 1000,
+    /**
+     * Minimum delay between statement executions, in seconds.
+     */
+    MIN_EXECUTION_DELAY: 0,
 };
 export default CONFIG;

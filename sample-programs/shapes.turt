@@ -1,12 +1,25 @@
-# move to the start position
-rotate(-90);
-setPos(screenWidth / 2 + 50, screenHeight / 2);
+setMoveSpeed(500);
 
-for (var i = 3; i <= 8; i = i + 1) {
+# move to the start position
+penUp();
+rotate(180);
+moveFwd(250);
+rotate(-90);
+moveFwd(50);
+rotate(180);
+penDown();
+
+var currentColor = 0;
+for (var i = 16; i >= 3; i = i - 1) {
+    setColor(currentColor);
+    beginPoly();
     for (var j = 0; j < i; j = j + 1) {
         moveFwd(100);
+        dropVertex();
         rotate(360 / i);
     }
+    endPoly();
+    currentColor = currentColor + 1;
 }
 
 hideTurtle();

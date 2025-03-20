@@ -70,9 +70,9 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
         importLibrary(this, turtStdLib);
         importLibrary(this, turtDrawLib);
 
-        // globals can't be defined as part of libraries
-        this.globals.define("screenWidth", CONFIG.SCREEN_WIDTH);
-        this.globals.define("screenHeight", CONFIG.SCREEN_HEIGHT);
+        // these can't use the importer because the value is determined at runtime
+        this.globals.define("screenWidth", CONFIG.SCREEN_WIDTH, true);
+        this.globals.define("screenHeight", CONFIG.SCREEN_HEIGHT, true);
 
         this.turtle.resetAll();
     }
@@ -357,7 +357,9 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
             await this.execute(stmt.body);
             
             if (++numIterations >= CONFIG.MAX_LOOP_ITERATIONS) {
-                throw new TInfiniteLoopError("Maximum number of loop iterations (250) exceeded.");
+                throw new TInfiniteLoopError(
+                    `Maximum number of loop iterations (${CONFIG.MAX_LOOP_ITERATIONS}) exceeded.`
+                );
             }
         }
     }
@@ -365,6 +367,19 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
     async execute(stmt: Stmt.StmtBase) {
         // immediately stop
         if (this.killExecution) { return; }
+
+        let delayTimer: Promise<void>;
+
+        // completely skip if the delat is disabled to run instantly
+        if (CONFIG.MIN_EXECUTION_DELAY > 0) {
+            // always launch the delay timer - if the turtle is gliding for longer, this will time
+            // out and be skipped
+            delayTimer = new Promise<void>((resolve) => {
+                window.setTimeout(() => {
+                    resolve();
+                }, CONFIG.MIN_EXECUTION_DELAY * 1000);
+            });
+        }
 
         if (this.turtle.gliding) {
             // console.log("pausing...");
@@ -376,11 +391,22 @@ export default class Interpreter implements Expr.ExprVisitor<Promise<LiteralType
             // console.log("resuming...");
         }
 
+        if (CONFIG.MIN_EXECUTION_DELAY > 0) {
+            await delayTimer;
+        }
+
         await stmt.accept(this);
     }
 
     get currentDisplayBlock() {
         return this.displayBlocks[this.displayBlocks.length - 1];
+    }
+
+    getDebugVariableList(): { [key: string]: { value: LiteralTypeUnion, shadows: boolean } } {
+        if (this.environment !== undefined) {
+            return this.environment.getDebugVariableList();
+        }
+        return {};
     }
 }
 

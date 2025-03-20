@@ -1,4 +1,4 @@
-setMoveSpeed(150);
+setMoveSpeed(1250);
 
 var PIXEL_SIZE = 25;
 var PIXELS = [
@@ -76,7 +76,7 @@ for (var y = 0; y < length(PIXELS); y = y + 1) {
     penUp();
     moveFwd(PIXEL_SIZE);
     penDown();
-    setMoveSpeed(getMoveSpeed() + 15);
+    # setMoveSpeed(getMoveSpeed() + 15);
   }
 
   # i could just teleport, but this is cooler

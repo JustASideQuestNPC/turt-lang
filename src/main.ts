@@ -7,13 +7,20 @@ import CONFIG from "../config/_CONFIG.js";
 import addCanvasListeners from "./listener-generator.js";
 import TurtLang from "./interpreter/turtLang.js";
 import Turtle from "./turtle.js";
+import { LiteralTypeUnion } from "./interpreter/scanner.js";
+import TurtArray from "./interpreter/array.js";
+import { TurtStdFunction, TurtUserFunction } from "./interpreter/callable.js";
 
 let turtle: Turtle;
 let codeFileInput: HTMLInputElement;
-let running: boolean;
+let runButton: HTMLButtonElement;
 let sidebarPos: number;
 let charWidth: number;
 let lineHeight: number;
+
+let frameCounterUpdateTimer = 0.5;
+let numFrames = 0;
+let prevAvgFramerate = 0;
 
 async function loadCodeFile(file: File) {
     // lock everything down until we're finished processing
@@ -23,12 +30,36 @@ async function loadCodeFile(file: File) {
     const text = await file.text();
     console.log("Compiling...");
 
-    if (TurtLang.compile(text)) {
+    const compiled = TurtLang.compile(text,
+        () => { runButton.disabled = false; },
+        () => { runButton.disabled = true;  }
+    );
+    if (compiled) {
         console.log("Done!");
     }
 
     codeFileInput.disabled = false;
     turtle.resetAll();
+}
+
+function getDisplayedValue(value: LiteralTypeUnion): string {
+    if (value instanceof TurtArray) {
+        return `<array[${value.size()}]>`;
+    }
+    if (value instanceof TurtUserFunction || value instanceof TurtStdFunction) {
+        return "<function>";
+    }
+    if (typeof value === "string") {
+        return `<string[${value.length}]>`;
+    }
+    if (typeof value === "number") {
+        // round to 4 decimal places
+        return `${Math.floor(value * 10000) / 10000}`;
+    }
+    if (typeof value === "boolean") {
+        return value ? "true" : "false";
+    }
+    return "null";
 }
 
 const sketch = (p5: p5) => {
@@ -55,6 +86,21 @@ const sketch = (p5: p5) => {
         turtle = new Turtle(p5, CONFIG.DEFAULT_TURTLE_SPEED, sidebarPos / 2, p5.height / 2);
         TurtLang.init(turtle);
 
+        runButton = document.getElementById("runCodeLine") as HTMLButtonElement;
+        // disable until we load a file
+        runButton.disabled = true;
+        runButton.onclick = () => {
+            if (TurtLang.finished()) {
+                // this is async so it'll keep running in the background until it's done
+                TurtLang.run();
+                runButton.innerText = "Stop";
+            }
+            else {
+                TurtLang.killExecution();
+                runButton.innerText = "Run";
+            }
+        };
+
         codeFileInput = <HTMLInputElement>document.getElementById("codeFile");
         codeFileInput.addEventListener("change", () => {
             const files = codeFileInput.files;
@@ -63,23 +109,6 @@ const sketch = (p5: p5) => {
                 loadCodeFile(file);
             }
         });
-
-        const runButton = document.getElementById("runCodeLine");
-        runButton.onclick = () => {
-            if (TurtLang.loaded()) {
-                if (TurtLang.finished()) {
-                    // this is async so it'll keep running in the background until it's done
-                    TurtLang.run();
-                    runButton.innerText = "Stop";
-                }
-                else {
-                    TurtLang.killExecution();
-                    runButton.innerText = "Run";
-                }
-            }
-        };
-
-
     };
 
     p5.draw = () => {
@@ -108,39 +137,54 @@ const sketch = (p5: p5) => {
             `Heading: ${Math.floor(turtle.heading * 180 / Math.PI)}\n` +
             `Pen Down: ${turtle.drawing}\n` +
             `Color:`,
-            sidebarPos + 10, 7
+            sidebarPos + 10, 10
         );
 
         // do some funky stuff to get a css color
         const turtleColor = turtle.currentColor;
-        // i have no idea if flooring is necessary here tbh
+        // i have no idea if flooring is actually necessary here tbh
         const r = Math.floor(p5.red(turtleColor)).toString(16).padStart(2, "0");
         const g = Math.floor(p5.green(turtleColor)).toString(16).padStart(2, "0");
         const b = Math.floor(p5.blue(turtleColor)).toString(16).padStart(2, "0");
 
         p5.fill(turtleColor);
-        p5.text(`#${r}${g}${b}`, sidebarPos + charWidth * 7 + 10, lineHeight * 3 + 7);
+        p5.text(`#${r}${g}${b}`, sidebarPos + charWidth * 7 + 10, lineHeight * 3 + 10);
 
         p5.stroke("#000000");
         p5.line(sidebarPos, lineHeight * 4.5, p5.width, lineHeight * 4.5);
         p5.noStroke();
 
-        // statement list
-        // const block = TurtLang.currentBlock();
-        // if (block !== undefined) {
-        //     let y = lineHeight * 5;
-        //     for (let i = 0; i < block[0].length; ++i) {
-        //         if (i === block[1]) {
-        //             p5.fill("#0000ff");
-        //         }
-        //         else {
-        //             p5.fill("#000000");
-        //         }
+        // variable list
+        const variableList = TurtLang.getDebugVariableList();
+        let displayedString = ``;
+        for (const [name, data] of Object.entries(variableList)) {
+            if (data.shadows) {
+                displayedString += `[s] `
+            }
+            displayedString += `${name} = ${getDisplayedValue(data.value)}\n`;
+        }
+        p5.noStroke();
+        p5.fill("#000000");
+        p5.text(displayedString, sidebarPos + 10, lineHeight * 4.5 + 10);
+    
+        // frame rate counter
+        p5.fill("#000000b0");
+        p5.rect(0, 0, 70, 20);
 
-        //         p5.text(block[0][i].displayName, sidebarPos + 10, y);
-        //         y += lineHeight;
-        //     }
-        // }
+        // update every half a second to prevent jumping around
+        frameCounterUpdateTimer -= p5.deltaTime / 1000; // native delta time is in milliseconds
+        ++numFrames;
+        if (frameCounterUpdateTimer <= 0) {
+            prevAvgFramerate = numFrames * 2;
+            numFrames = 0;
+            frameCounterUpdateTimer = 0.5;
+        }
+
+        p5.fill("#00ff00");
+        p5.textSize(16);
+        p5.textAlign("left", "top");
+        p5.noStroke();
+        p5.text(`${Math.floor(prevAvgFramerate)} FPS`, 3, 3);
     };
 
     function keyPressed(event: KeyboardEvent) {}

@@ -7,6 +7,11 @@ interface TurtVariable {
     isLibraryVariable: boolean,
 }
 
+interface DebugVariableEntry {
+    value: LiteralTypeUnion,
+    shadows: boolean
+}
+
 /**
  * Runtime environment that stores all variables in a scope
  */
@@ -120,5 +125,27 @@ export default class Environment {
         if (this.enclosing !== null) { return this.enclosing.get(name); }
 
         throw new TRuntimeError(`Undefined variable '${name.lexeme}'.`);
+    }
+
+    // gets a table of all non-library variables in this and every enclosing scope; used for
+    // the debugging sidebar
+    getDebugVariableList(): { [key: string]: DebugVariableEntry } {
+        // recursively get everything in enclosing scopes
+        const table: { [key: string]: DebugVariableEntry } = (
+            this.enclosing !== null ? this.enclosing.getDebugVariableList() : {}
+        );
+
+        // add our own variables to the list
+        for (const [name, value] of Object.entries(this.variables)) {
+            if (!value.isLibraryVariable) {
+                const shadows = (table[name] !== undefined);
+                table[name] = {
+                    value: value.value,
+                    shadows: shadows
+                }
+            }
+        }
+
+        return table;
     }
 }

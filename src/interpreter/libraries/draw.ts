@@ -7,6 +7,7 @@ import { LiteralTypeUnion } from "../scanner.js";
 
 function toRadians(angle: number) { return angle * (Math.PI / 180); }
 function toDegrees(angle: number) { return angle * (180 / Math.PI); }
+const TWO_PI = Math.PI * 2;
 
 /**
  * Functions for controlling the turtle.
@@ -64,11 +65,13 @@ const functions: {[key: string]: LibFunction} = {
     // sets the turtle's heading in degrees
     "setAngle": (_, turtle, angle: number) => {
         turtle.heading = toRadians(angle - 90);
+        turtle.heading = ((turtle.heading % TWO_PI) + TWO_PI) % TWO_PI;
     },
 
     // rotates the turtle by some amount of degrees
     "rotate": (_, turtle, angle: number) => {
         turtle.heading += toRadians(angle);
+        turtle.heading = ((turtle.heading % TWO_PI) + TWO_PI) % TWO_PI;
     },
 
     // hides the turtle's sprite
